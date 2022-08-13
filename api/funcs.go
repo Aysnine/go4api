@@ -11,67 +11,66 @@
 package api
 
 import (
-    "fmt"
-    "strings"
-    "reflect"
-    "encoding/json"
+	"encoding/json"
+	"fmt"
+	"reflect"
+	"strings"
 
-    "go4api/lib/g4json"
-    "go4api/builtins"
-    gjs "go4api/js"
+	"github.com/Aysnine/go4api/builtins"
+	gjs "github.com/Aysnine/go4api/js"
+	"github.com/Aysnine/go4api/lib/g4json"
 
-    // gjson "github.com/tidwall/gjson"
-    sjson "github.com/tidwall/sjson"
+	// gjson "github.com/tidwall/gjson"
+	sjson "github.com/tidwall/sjson"
 )
 
+func (tcDataStore *TcDataStore) EvaluateEmbeddedFunctions(value interface{}) interface{} {
+	if value == nil {
+		return nil
+	}
 
-func (tcDataStore *TcDataStore) EvaluateEmbeddedFunctions (value interface{}) interface{} {
-    if value == nil {
-        return nil
-    }
+	t := reflect.TypeOf(value).Kind().String()
 
-    t := reflect.TypeOf(value).Kind().String()
+	jsonStr := ""
+	switch t {
+	case "string":
+		jsonStr = value.(string)
+	default:
+		jsonBytes, _ := json.Marshal(value)
+		jsonStr = string(jsonBytes)
+	}
 
-    jsonStr := "" 
-    switch t {
-    case "string":
-        jsonStr = value.(string)
-    default:
-        jsonBytes, _ := json.Marshal(value)
-        jsonStr = string(jsonBytes)
-    }
+	// check if has embedded function
+	if !strings.Contains(jsonStr, "Fn::") {
+		return value
+	} else {
+		// the longest path which has "Fn::"
+		funcLeavesSlice := GetFuncLeavesSlice(value)
 
-    // check if has embedded function
-    if !strings.Contains(jsonStr, "Fn::") {
-        return value
-    } else {
-        // the longest path which has "Fn::"
-        funcLeavesSlice := GetFuncLeavesSlice(value)
+		maxLevel := g4json.GetJsonNodesLevel(funcLeavesSlice)
 
-        maxLevel := g4json.GetJsonNodesLevel(funcLeavesSlice)
+		jsonStr = tcDataStore.IterateFuncs(jsonStr, funcLeavesSlice, maxLevel)
 
-        jsonStr = tcDataStore.IterateFuncs(jsonStr, funcLeavesSlice, maxLevel)
-
-        return jsonStr
-    }
+		return jsonStr
+	}
 }
 
-func GetFuncLeavesSlice (value interface{}) []g4json.FieldDetails {
-    var funcLeavesSlice []g4json.FieldDetails
+func GetFuncLeavesSlice(value interface{}) []g4json.FieldDetails {
+	var funcLeavesSlice []g4json.FieldDetails
 
-    fieldDetailsSlice := g4json.GetFieldsDetails(value)
+	fieldDetailsSlice := g4json.GetFieldsDetails(value)
 
-    leavesSlice := g4json.GetJsonLeaves(fieldDetailsSlice)
+	leavesSlice := g4json.GetJsonLeaves(fieldDetailsSlice)
 
-    for i, _ := range leavesSlice {
-        nodePathStr := strings.Join(leavesSlice[i].FieldPath, ".")
+	for i, _ := range leavesSlice {
+		nodePathStr := strings.Join(leavesSlice[i].FieldPath, ".")
 
-        if strings.Contains(nodePathStr, "Fn::") {
-            funcLeavesSlice = append(funcLeavesSlice, leavesSlice[i])
-        }   
-    }
+		if strings.Contains(nodePathStr, "Fn::") {
+			funcLeavesSlice = append(funcLeavesSlice, leavesSlice[i])
+		}
+	}
 
-    return funcLeavesSlice
+	return funcLeavesSlice
 }
 
 // need to consider the nested functions, like:
@@ -82,117 +81,116 @@ func GetFuncLeavesSlice (value interface{}) []g4json.FieldDetails {
 //
 // !! Warning: specail case, if the key is complex key, as contains ., \, ", etc., need specail handle
 
-func (tcDataStore *TcDataStore) IterateFuncs (jsonStr string, funcLeavesSlice []g4json.FieldDetails, maxLevel int) string {
-    var evaluatedSlice []g4json.FieldDetails
-    var evaluatedFuncPaths []string
+func (tcDataStore *TcDataStore) IterateFuncs(jsonStr string, funcLeavesSlice []g4json.FieldDetails, maxLevel int) string {
+	var evaluatedSlice []g4json.FieldDetails
+	var evaluatedFuncPaths []string
 
-    var replacerMap = make(map[string]string)
+	var replacerMap = make(map[string]string)
 
-    for i := maxLevel; i > 0; i-- {
-        for j, _ := range funcLeavesSlice {
-            pathLength := len(funcLeavesSlice[j].FieldPath)
-            if pathLength >= i && i > 1 {
-                // the last node (leaf), take its own CurrValue as the funcParams 
-                if strings.Contains(funcLeavesSlice[j].FieldPath[i - 1], "Fn::") {
-                    var value interface{}
-                    json.Unmarshal([]byte(jsonStr), &value)
+	for i := maxLevel; i > 0; i-- {
+		for j, _ := range funcLeavesSlice {
+			pathLength := len(funcLeavesSlice[j].FieldPath)
+			if pathLength >= i && i > 1 {
+				// the last node (leaf), take its own CurrValue as the funcParams
+				if strings.Contains(funcLeavesSlice[j].FieldPath[i-1], "Fn::") {
+					var value interface{}
+					json.Unmarshal([]byte(jsonStr), &value)
 
-                    evaluatedSlice = g4json.GetFieldsDetails(value)
+					evaluatedSlice = g4json.GetFieldsDetails(value)
 
-                    var tempSlice []string
-                    var nodePathStr string
-                    for ii, _ := range funcLeavesSlice[j].FieldPath[0:i - 1] {
-                        oKey := funcLeavesSlice[j].FieldPath[0:i - 1][ii]
+					var tempSlice []string
+					var nodePathStr string
+					for ii, _ := range funcLeavesSlice[j].FieldPath[0 : i-1] {
+						oKey := funcLeavesSlice[j].FieldPath[0 : i-1][ii]
 
-                        // if the key is complex key, as contains dot (.)
-                        if strings.Contains(oKey, ".") {
-                            rkey := "go4Api_efdvberipz_ReplacerKey_" + fmt.Sprint(i) + "_" + fmt.Sprint(j) + "_" + fmt.Sprint(ii)
+						// if the key is complex key, as contains dot (.)
+						if strings.Contains(oKey, ".") {
+							rkey := "go4Api_efdvberipz_ReplacerKey_" + fmt.Sprint(i) + "_" + fmt.Sprint(j) + "_" + fmt.Sprint(ii)
 
-                            // if the key is complex key, as contains \"
-                            if strings.Contains(oKey, "\"") {
-                                oKey = strings.Replace(oKey, "\"", "\\\"", -1)
-                                replacerMap[rkey] = oKey
-                            } else {
-                                replacerMap[rkey] = oKey
-                            }
+							// if the key is complex key, as contains \"
+							if strings.Contains(oKey, "\"") {
+								oKey = strings.Replace(oKey, "\"", "\\\"", -1)
+								replacerMap[rkey] = oKey
+							} else {
+								replacerMap[rkey] = oKey
+							}
 
-                            tempSlice = append(tempSlice, rkey)
-                        } else {
-                            tempSlice = append(tempSlice, oKey)
-                        }
-                    }
-                    nodePathStr = strings.Join(tempSlice, ".")
-                    
-                    funcName := strings.TrimLeft(funcLeavesSlice[j].FieldPath[i - 1], "Fn::")
+							tempSlice = append(tempSlice, rkey)
+						} else {
+							tempSlice = append(tempSlice, oKey)
+						}
+					}
+					nodePathStr = strings.Join(tempSlice, ".")
 
-                    var funcParams interface{}
-                    ifExists := false
-                    funcParamsPath := strings.Join(funcLeavesSlice[j].FieldPath[0:i], ".")
-                    for ind, _ := range evaluatedFuncPaths {
-                        if funcParamsPath == evaluatedFuncPaths[ind] {
-                            ifExists = true
-                        }
-                    }
-                    if ifExists == true {
-                        continue
-                    }
-                    for k, _ := range evaluatedSlice {
-                        p := strings.Join(evaluatedSlice[k].FieldPath, ".")
-                        if funcParamsPath == p {
-                            funcParams = evaluatedSlice[k].CurrValue
-                        }
-                    }
+					funcName := strings.TrimLeft(funcLeavesSlice[j].FieldPath[i-1], "Fn::")
 
-                    var funcParams_f interface{}
-                    // Note: if funcParams is string, it has chance to be the json lookup path, like $(sql).xxx, $(body).xxx
-                    switch funcParams.(type) {
-                    case string:
-                        funcParams_f = tcDataStore.GetResponseValue(funcParams.(string))
-                    default:
-                        funcParams_f = funcParams
-                    }
-                    
-                    // call func
-                    resValue := CallFunc(funcName, funcParams_f)
+					var funcParams interface{}
+					ifExists := false
+					funcParamsPath := strings.Join(funcLeavesSlice[j].FieldPath[0:i], ".")
+					for ind, _ := range evaluatedFuncPaths {
+						if funcParamsPath == evaluatedFuncPaths[ind] {
+							ifExists = true
+						}
+					}
+					if ifExists == true {
+						continue
+					}
+					for k, _ := range evaluatedSlice {
+						p := strings.Join(evaluatedSlice[k].FieldPath, ".")
+						if funcParamsPath == p {
+							funcParams = evaluatedSlice[k].CurrValue
+						}
+					}
 
-                    for key, _ := range replacerMap {
-                        jsonStr = strings.Replace(jsonStr, replacerMap[key], key, -1)
-                    }
+					var funcParams_f interface{}
+					// Note: if funcParams is string, it has chance to be the json lookup path, like $(sql).xxx, $(body).xxx
+					switch funcParams.(type) {
+					case string:
+						funcParams_f = tcDataStore.GetResponseValue(funcParams.(string))
+					default:
+						funcParams_f = funcParams
+					}
 
-                    jsonStr, _  = sjson.Set(jsonStr, nodePathStr, resValue)
-      
-                    evaluatedFuncPaths = append(evaluatedFuncPaths, funcParamsPath)
-                }
-            }
-        }
-    }
+					// call func
+					resValue := CallFunc(funcName, funcParams_f)
 
-    for key, _ := range replacerMap {
-        jsonStr = strings.Replace(jsonStr, key, replacerMap[key], -1)
-    }
+					for key, _ := range replacerMap {
+						jsonStr = strings.Replace(jsonStr, replacerMap[key], key, -1)
+					}
 
-    return jsonStr
+					jsonStr, _ = sjson.Set(jsonStr, nodePathStr, resValue)
+
+					evaluatedFuncPaths = append(evaluatedFuncPaths, funcParamsPath)
+				}
+			}
+		}
+	}
+
+	for key, _ := range replacerMap {
+		jsonStr = strings.Replace(jsonStr, key, replacerMap[key], -1)
+	}
+
+	return jsonStr
 }
-
 
 // CallFunc for BuiltinFunc and User defined func (i.e. in js files)
 func CallFunc(funcName string, funcParams_f interface{}) interface{} {
-    // user defined func has high priority than builtin func
-    idx := -1
-    var returnValue interface{}
+	// user defined func has high priority than builtin func
+	idx := -1
+	var returnValue interface{}
 
-    for i, _ := range gjs.JsFunctions {
-        if gjs.JsFunctions[i].JsFunctionName == funcName {
-            idx = i
-            break
-        }
-    } 
+	for i, _ := range gjs.JsFunctions {
+		if gjs.JsFunctions[i].JsFunctionName == funcName {
+			idx = i
+			break
+		}
+	}
 
-    if idx != -1 {
-        returnValue = gjs.RunProgram(gjs.JsFunctions[idx].JsProgram, funcParams_f)
-    } else {
-        returnValue = builtins.CallBuiltinFunc(funcName, funcParams_f)
-    }
+	if idx != -1 {
+		returnValue = gjs.RunProgram(gjs.JsFunctions[idx].JsProgram, funcParams_f)
+	} else {
+		returnValue = builtins.CallBuiltinFunc(funcName, funcParams_f)
+	}
 
-    return returnValue
+	return returnValue
 }

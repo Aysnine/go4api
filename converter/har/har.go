@@ -11,146 +11,145 @@
 package har
 
 import (
-    "fmt"
-    // "time"
-    // "os"
-    // "sort"
-    // "sync"
-    "io/ioutil"
-    "strconv"
-    "strings"
-    "encoding/json"
-    "go4api/cmd"
-    "go4api/utils"
-    "go4api/lib/testcase" 
+	"fmt"
+	// "time"
+	// "os"
+	// "sort"
+	// "sync"
+	"encoding/json"
+	"io/ioutil"
+	"strconv"
+	"strings"
+
+	"github.com/Aysnine/go4api/cmd"
+	"github.com/Aysnine/go4api/lib/testcase"
+	"github.com/Aysnine/go4api/utils"
 )
 
-func Convert () {
-    var har Har
+func Convert() {
+	var har Har
 
-    filePath := cmd.Opt.Harfile
-    resJson := utils.GetJsonFromFile(filePath)
-    json.Unmarshal([]byte(resJson), &har)
+	filePath := cmd.Opt.Harfile
+	resJson := utils.GetJsonFromFile(filePath)
+	json.Unmarshal([]byte(resJson), &har)
 
-    //
-    var testCases []testcase.TestCase
-    //
-    // Note, if cnovert a bunch of files, the sequence need to use global sequence to avoid duplicate tcnames
-    for i, entry := range har["log"].Entries {
-        g4ATcName := entry.buildG4ATcName(i)
-        priority, parentTestCase, _, _ := entry.buildG4ATcGeneralInfo()
+	//
+	var testCases []testcase.TestCase
+	//
+	// Note, if cnovert a bunch of files, the sequence need to use global sequence to avoid duplicate tcnames
+	for i, entry := range har["log"].Entries {
+		g4ATcName := entry.buildG4ATcName(i)
+		priority, parentTestCase, _, _ := entry.buildG4ATcGeneralInfo()
 
-        g4ARequest := entry.Request.buildG4ARequest()
-        g4AResponse := entry.Response.buildG4AResponse()
+		g4ARequest := entry.Request.buildG4ARequest()
+		g4AResponse := entry.Response.buildG4AResponse()
 
-        //
-        tCase := make(map[string]*(testcase.TestCaseBasics))
-        
-        tCaseBasics := testcase.TestCaseBasics {
-            Priority:                 priority, 
-            ParentTestCase:           parentTestCase,
-            IfGlobalSetUpTestCase:    false,
-            IfGlobalTearDownTestCase: false,
-            SetUp:                    []*testcase.CommandDetails{},
-            Inputs:                   []interface{}{},
-            Request:                  &g4ARequest,
-            Response:                 g4AResponse,
-            Outputs:                  []*testcase.OutputsDetails{},
-            OutFiles:                 []*testcase.OutFilesDetails{},
-            OutGlobalVariables:       map[string]interface{}{},  // OutGlobalVariables
-            OutLocalVariables:        map[string]interface{}{},  // OutLocalVariables
-            Session:                  map[string]interface{}{},  // Session
-            TearDown:                 []*testcase.CommandDetails{},
-        }
+		//
+		tCase := make(map[string]*(testcase.TestCaseBasics))
 
-        tCase[g4ATcName] = &tCaseBasics
+		tCaseBasics := testcase.TestCaseBasics{
+			Priority:                 priority,
+			ParentTestCase:           parentTestCase,
+			IfGlobalSetUpTestCase:    false,
+			IfGlobalTearDownTestCase: false,
+			SetUp:                    []*testcase.CommandDetails{},
+			Inputs:                   []interface{}{},
+			Request:                  &g4ARequest,
+			Response:                 g4AResponse,
+			Outputs:                  []*testcase.OutputsDetails{},
+			OutFiles:                 []*testcase.OutFilesDetails{},
+			OutGlobalVariables:       map[string]interface{}{}, // OutGlobalVariables
+			OutLocalVariables:        map[string]interface{}{}, // OutLocalVariables
+			Session:                  map[string]interface{}{}, // Session
+			TearDown:                 []*testcase.CommandDetails{},
+		}
 
-        // tcJson, _ := json.Marshal(tCase)
-        // fmt.Print(string(tcJson))
+		tCase[g4ATcName] = &tCaseBasics
 
-        testCases = append(testCases, tCase)
-    }
-    fmt.Println("") 
+		// tcJson, _ := json.Marshal(tCase)
+		// fmt.Print(string(tcJson))
 
-    tcsJson, _ := json.MarshalIndent(testCases, "", "\t")
-    // fmt.Print(string(tcsJson))
+		testCases = append(testCases, tCase)
+	}
+	fmt.Println("")
 
-    // json write to file
-    outPath := cmd.Opt.Harfile + ".out.json"
-    ioutil.WriteFile(outPath, tcsJson, 0644)
+	tcsJson, _ := json.MarshalIndent(testCases, "", "\t")
+	// fmt.Print(string(tcsJson))
 
-    fmt.Println("\n! Convert Har file finished !")
-    fmt.Println("")
+	// json write to file
+	outPath := cmd.Opt.Harfile + ".out.json"
+	ioutil.WriteFile(outPath, tcsJson, 0644)
+
+	fmt.Println("\n! Convert Har file finished !")
+	fmt.Println("")
 }
 
+func (harEntry Entry) buildG4ATcName(sequence int) string {
+	g4ATcName := ""
 
-func (harEntry Entry) buildG4ATcName (sequence int) string {
-    g4ATcName := ""
+	// the format of tcNmae would be: Get - url(end point) - sequenrce
+	methodP := harEntry.Request.Method
 
-    // the format of tcNmae would be: Get - url(end point) - sequenrce
-    methodP := harEntry.Request.Method
+	urlPath := strings.Split(harEntry.Request.Url, "?")[0]
+	urlSlice := strings.Split(urlPath, "/")
 
-    urlPath := strings.Split(harEntry.Request.Url, "?")[0]
-    urlSlice := strings.Split(urlPath, "/")
+	urlP := ""
+	if len(urlSlice[len(urlSlice)-1]) > 0 {
+		urlP = urlSlice[len(urlSlice)-1]
+	} else {
+		urlP = urlSlice[len(urlSlice)-2]
+	}
 
-    urlP := ""
-    if len(urlSlice[len(urlSlice) - 1]) > 0 {
-        urlP = urlSlice[len(urlSlice) - 1]
-    } else {
-        urlP = urlSlice[len(urlSlice) - 2]
-    }
+	g4ATcName = "Har-" + methodP + "-" + urlP + "-" + strconv.Itoa(sequence)
 
-    g4ATcName = "Har-" + methodP + "-" + urlP + "-" + strconv.Itoa(sequence)
-
-    return g4ATcName
+	return g4ATcName
 }
 
-func (harEntry Entry) buildG4ATcGeneralInfo () (string, string, string, string) {
-    // priority, parentTestCase, inputs, outputs
-    return "1", "root", "", ""
+func (harEntry Entry) buildG4ATcGeneralInfo() (string, string, string, string) {
+	// priority, parentTestCase, inputs, outputs
+	return "1", "root", "", ""
 }
 
+func (harRequest Request) buildG4ARequest() testcase.Request {
+	var g4ARequest testcase.Request
 
-func (harRequest Request) buildG4ARequest () testcase.Request {
-    var g4ARequest testcase.Request
+	g4ARequest.Method = harRequest.Method
+	g4ARequest.Path = harRequest.Url
 
-    g4ARequest.Method = harRequest.Method
-    g4ARequest.Path = harRequest.Url
+	//
+	reqHeaders := make(map[string]interface{})
+	for _, header := range harRequest.Headers {
+		reqHeaders[header["name"].(string)] = header["value"]
+	}
+	g4ARequest.Headers = reqHeaders
 
-    //
-    reqHeaders := make(map[string]interface{})
-    for _, header := range harRequest.Headers {
-        reqHeaders[header["name"].(string)] = header["value"]
-    }
-    g4ARequest.Headers = reqHeaders
+	//
+	reqQS := make(map[string]interface{})
+	for _, qs := range harRequest.QueryString {
+		reqQS[qs["name"].(string)] = qs["value"]
+	}
+	g4ARequest.QueryString = reqQS
 
-    //
-    reqQS := make(map[string]interface{})
-    for _, qs := range harRequest.QueryString {
-        reqQS[qs["name"].(string)] = qs["value"]
-    }
-    g4ARequest.QueryString = reqQS
+	//
+	reqPL := make(map[string]interface{})
+	for key, value := range harRequest.PostData {
+		if key == "text" {
+			reqPL["text"] = value
+		}
 
-    //
-    reqPL := make(map[string]interface{})
-    for key, value := range harRequest.PostData {
-        if key == "text" {
-            reqPL["text"] = value
-        }
-        
-    }
-    g4ARequest.Payload = reqPL
+	}
+	g4ARequest.Payload = reqPL
 
-    return g4ARequest
+	return g4ARequest
 }
 
-func (harResponse Response) buildG4AResponse () []map[string]interface{}  {
-    var g4AResponse []map[string]interface{} 
+func (harResponse Response) buildG4AResponse() []map[string]interface{} {
+	var g4AResponse []map[string]interface{}
 
-    respStatus := make(map[string]interface{})
-    respStatus["Equals"] = harResponse.Status
+	respStatus := make(map[string]interface{})
+	respStatus["Equals"] = harResponse.Status
 
-    // g4AResponse.Status = respStatus
+	// g4AResponse.Status = respStatus
 
-    return g4AResponse
+	return g4AResponse
 }

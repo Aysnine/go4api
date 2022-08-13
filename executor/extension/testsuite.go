@@ -11,24 +11,24 @@
 package extension
 
 import (
-    // "fmt"
-    "strings"
+	// "fmt"
+	"strings"
 
-    "go4api/cmd"
-    "go4api/lib/testcase"
-    "go4api/lib/extension/testsuite"
+	"github.com/Aysnine/go4api/cmd"
+	"github.com/Aysnine/go4api/lib/extension/testsuite"
+	"github.com/Aysnine/go4api/lib/testcase"
 )
 
-func GetTsFilePaths () []string {
-    filePathSlice := strings.Split(cmd.Opt.Testsuite, ",")
+func GetTsFilePaths() []string {
+	filePathSlice := strings.Split(cmd.Opt.Testsuite, ",")
 
-    return filePathSlice
+	return filePathSlice
 }
 
-func InitFullTsTcSlice (filePaths []string) []*testcase.TestCaseDataInfo {
-    // filePathSlice := GetTsFilePaths()
+func InitFullTsTcSlice(filePaths []string) []*testcase.TestCaseDataInfo {
+	// filePathSlice := GetTsFilePaths()
 
-    fullTsTcSlice := testsuite.InitFullTsTcSlice(filePaths)
+	fullTsTcSlice := testsuite.InitFullTsTcSlice(filePaths)
 
-    return fullTsTcSlice
+	return fullTsTcSlice
 }

@@ -11,28 +11,26 @@
 package reports
 
 import (
- 	// "fmt"
+	// "fmt"
 
-	"go4api/lib/testcase"
+	"github.com/Aysnine/go4api/lib/testcase"
 
 	. "github.com/ahmetb/go-linq"
 )
 
+func (tcReportSlice TcReportSlice) GroupByFunctionArea() []Group {
+	type ReportsStuct struct {
+		FunctionArea string
+	}
 
+	var query []Group
 
-func (tcReportSlice TcReportSlice) GroupByFunctionArea () []Group {
-    type ReportsStuct struct {
-        FunctionArea string
-    }
+	From(tcReportSlice).GroupByT(
+		func(item *testcase.TcReportResults) ReportsStuct {
+			return ReportsStuct{item.FunctionAreas[0]}
+		},
+		func(item *testcase.TcReportResults) int64 { return 1 },
+	).ToSlice(&query)
 
-    var query []Group
-
-    From(tcReportSlice).GroupByT(
-        func(item *testcase.TcReportResults) ReportsStuct { 
-            return ReportsStuct{item.FunctionAreas[0]}
-        },
-        func(item *testcase.TcReportResults) int64 { return 1 },
-    ).ToSlice(&query)
-
-    return query
+	return query
 }

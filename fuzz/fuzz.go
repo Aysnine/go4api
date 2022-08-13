@@ -10,26 +10,26 @@
 
 package fuzz
 
-import (                                                                                                                                             
-    // "time"
-    "fmt"
-    "strings"
-    "strconv"
-    "encoding/json"
-    "path/filepath"
-    
-    "go4api/cmd"
-    "go4api/utils"
-    "go4api/lib/pairwise"
+import (
+	// "time"
+	"encoding/json"
+	"fmt"
+	"path/filepath"
+	"strconv"
+	"strings"
+
+	"github.com/Aysnine/go4api/cmd"
+	"github.com/Aysnine/go4api/lib/pairwise"
+	"github.com/Aysnine/go4api/utils"
 )
 
 // valid, invalid data may have more than one field, but the map itself can not ensure the key sequence
 // so that, here use slice
-type FuzzData struct {  
-    ValidData []map[string][]interface{}
-    InvalidData []map[string][]interface{}
-    ValidStatusCode int
-    InvalidStatusCode int
+type FuzzData struct {
+	ValidData         []map[string][]interface{}
+	InvalidData       []map[string][]interface{}
+	ValidStatusCode   int
+	InvalidStatusCode int
 }
 
 // id1: Char(0, 20), Default("abc")
@@ -47,246 +47,236 @@ type FuzzData struct {
 
 type FieldDefinitions []*FieldDefinition
 
-type FieldDefinition struct {  
-    FieldName string
-    FieldType string
-    FieldSubType string
-    FieldMin int
-    FieldMax int
-    ArrayRaw []interface{}
-    Default interface{}
+type FieldDefinition struct {
+	FieldName    string
+	FieldType    string
+	FieldSubType string
+	FieldMin     int
+	FieldMax     int
+	ArrayRaw     []interface{}
+	Default      interface{}
 }
 
-
 func PrepFuzzTest() {
-    fuzzFileList, _ := utils.WalkPath(cmd.Opt.Testcase, ".fuzz")
-    // (1). generate the data tables based on the fuzz test, at least two dt files: positive and negative
-    for _, fuzzFile := range fuzzFileList {
-        fuzzData := GenerateFuzzData(fuzzFile)
+	fuzzFileList, _ := utils.WalkPath(cmd.Opt.Testcase, ".fuzz")
+	// (1). generate the data tables based on the fuzz test, at least two dt files: positive and negative
+	for _, fuzzFile := range fuzzFileList {
+		fuzzData := GenerateFuzzData(fuzzFile)
 
-        GenerateFuzzValidDataFiles(fuzzFile, fuzzData)
-        GenerateFuzzInvalidDataFiles(fuzzFile, fuzzData)
-    }
-    // (2). render the json using the fuzz dt(s)
-    // fuzzTcArray := GetFuzzTcArray(options)
+		GenerateFuzzValidDataFiles(fuzzFile, fuzzData)
+		GenerateFuzzInvalidDataFiles(fuzzFile, fuzzData)
+	}
+	// (2). render the json using the fuzz dt(s)
+	// fuzzTcArray := GetFuzzTcArray(options)
 }
 
 // to get the fuzz data table files with naming fuzzcase_fuzz_dt_valid.csv / fuzzcase_fuzz_dt_invalid.csv
 func GenerateFuzzData(fuzzFile string) FuzzData {
-    var fieldDefinitions FieldDefinitions
-    defJson := utils.GetJsonFromFile(fuzzFile)
-    json.Unmarshal([]byte(defJson), &fieldDefinitions)
+	var fieldDefinitions FieldDefinitions
+	defJson := utils.GetJsonFromFile(fuzzFile)
+	json.Unmarshal([]byte(defJson), &fieldDefinitions)
 
-    var fuzzData FuzzData
-    var validValueList []map[string][]interface{}
-    var invalidValueList []map[string][]interface{}
+	var fuzzData FuzzData
+	var validValueList []map[string][]interface{}
+	var invalidValueList []map[string][]interface{}
 
-    for _, fieldDefinition := range fieldDefinitions {
-        validValueMap := make(map[string][]interface{})
-        invalidValueMap := make(map[string][]interface{})
-        // call the rules to get values
-        fuzzValidType := fieldDefinition.DetermineFuzzValidType()
-        validValueMap[fieldDefinition.FieldName] = fieldDefinition.CallFuzzRules(fuzzValidType)
-        // invalid 
-        fuzzInvalidType := fieldDefinition.DetermineFuzzInvalidType()
-        fmt.Println("fuzzInvalidType: ", fuzzInvalidType)
-        invalidValueMap[fieldDefinition.FieldName] = fieldDefinition.CallFuzzRules(fuzzInvalidType)
-        // append to slice
-        validValueList = append(validValueList, validValueMap)
-        invalidValueList = append(invalidValueList, invalidValueMap)
-    }
+	for _, fieldDefinition := range fieldDefinitions {
+		validValueMap := make(map[string][]interface{})
+		invalidValueMap := make(map[string][]interface{})
+		// call the rules to get values
+		fuzzValidType := fieldDefinition.DetermineFuzzValidType()
+		validValueMap[fieldDefinition.FieldName] = fieldDefinition.CallFuzzRules(fuzzValidType)
+		// invalid
+		fuzzInvalidType := fieldDefinition.DetermineFuzzInvalidType()
+		fmt.Println("fuzzInvalidType: ", fuzzInvalidType)
+		invalidValueMap[fieldDefinition.FieldName] = fieldDefinition.CallFuzzRules(fuzzInvalidType)
+		// append to slice
+		validValueList = append(validValueList, validValueMap)
+		invalidValueList = append(invalidValueList, invalidValueMap)
+	}
 
-    fuzzData = FuzzData {
-        ValidData: validValueList,
-        InvalidData: invalidValueList,
-        ValidStatusCode: 200,
-        InvalidStatusCode: 200,
-    }
+	fuzzData = FuzzData{
+		ValidData:         validValueList,
+		InvalidData:       invalidValueList,
+		ValidStatusCode:   200,
+		InvalidStatusCode: 200,
+	}
 
-    fmt.Println("fuzzData: ", fuzzData)
+	fmt.Println("fuzzData: ", fuzzData)
 
-    return fuzzData
+	return fuzzData
 }
 
-
 func GenerateFuzzValidDataFiles(fuzzFile string, fuzzData FuzzData) {
-    outputsFile := filepath.Join(filepath.Dir(fuzzFile), 
-        strings.TrimSuffix(filepath.Base(fuzzFile), ".fuzz") + "_fuzz_dt_valid.csv")
-    // write csv header, data
-    validHeaderStr := ""
-    validHeaderStr = validHeaderStr + "tcid"
-    for _, validDataMap := range fuzzData.ValidData {
-        for key, _ := range validDataMap {
-            validHeaderStr = validHeaderStr + "," + key
-        }
-    }
-    utils.GenerateFileBasedOnVarOverride(validHeaderStr + "\n", outputsFile)
+	outputsFile := filepath.Join(filepath.Dir(fuzzFile),
+		strings.TrimSuffix(filepath.Base(fuzzFile), ".fuzz")+"_fuzz_dt_valid.csv")
+	// write csv header, data
+	validHeaderStr := ""
+	validHeaderStr = validHeaderStr + "tcid"
+	for _, validDataMap := range fuzzData.ValidData {
+		for key, _ := range validDataMap {
+			validHeaderStr = validHeaderStr + "," + key
+		}
+	}
+	utils.GenerateFileBasedOnVarOverride(validHeaderStr+"\n", outputsFile)
 
-    // this is to get the combinations, set use pairwise length = 2
-    tcDataSlice := GetValidTcData(fuzzData, 2)
-    //
-    i := 0
-    tcid := ""
-    for _, tcData := range tcDataSlice {
-        i = i + 1
-        tcid = "valid" + strconv.Itoa(i)
+	// this is to get the combinations, set use pairwise length = 2
+	tcDataSlice := GetValidTcData(fuzzData, 2)
+	//
+	i := 0
+	tcid := ""
+	for _, tcData := range tcDataSlice {
+		i = i + 1
+		tcid = "valid" + strconv.Itoa(i)
 
-        combStr := ""
-        for ii, item := range tcData {
-            if ii == 0 {
-                combStr = combStr + fmt.Sprint(item)
-            } else{
-                combStr = combStr + "," + fmt.Sprint(item)
-            }
-        }
-        utils.GenerateFileBasedOnVarAppend(tcid + "," + combStr + "\n", outputsFile)
-    }
+		combStr := ""
+		for ii, item := range tcData {
+			if ii == 0 {
+				combStr = combStr + fmt.Sprint(item)
+			} else {
+				combStr = combStr + "," + fmt.Sprint(item)
+			}
+		}
+		utils.GenerateFileBasedOnVarAppend(tcid+","+combStr+"\n", outputsFile)
+	}
 }
 
 func GenerateFuzzInvalidDataFiles(fuzzFile string, fuzzData FuzzData) {
-    outputsFile := filepath.Join(filepath.Dir(fuzzFile), 
-        strings.TrimSuffix(filepath.Base(fuzzFile), ".fuzz") + "_fuzz_dt_invalid.csv")
-    // write csv header
-    invalidHeaderStr := ""
-    invalidHeaderStr = invalidHeaderStr + "tcid"
-    for _, invalidDataMap := range fuzzData.InvalidData {
-        for key, _ := range invalidDataMap {
-            invalidHeaderStr = invalidHeaderStr + "," + key
-        }
-    }
-    utils.GenerateFileBasedOnVarOverride(invalidHeaderStr + "\n", outputsFile)
+	outputsFile := filepath.Join(filepath.Dir(fuzzFile),
+		strings.TrimSuffix(filepath.Base(fuzzFile), ".fuzz")+"_fuzz_dt_invalid.csv")
+	// write csv header
+	invalidHeaderStr := ""
+	invalidHeaderStr = invalidHeaderStr + "tcid"
+	for _, invalidDataMap := range fuzzData.InvalidData {
+		for key, _ := range invalidDataMap {
+			invalidHeaderStr = invalidHeaderStr + "," + key
+		}
+	}
+	utils.GenerateFileBasedOnVarOverride(invalidHeaderStr+"\n", outputsFile)
 
-    tcDataSlice := GetInvalidTcData(fuzzData, 2)
-    //
-    i := 0
-    tcid := ""
-    for _, tcData := range tcDataSlice {
-        i = i + 1
-        tcid = "invalid" + strconv.Itoa(i)
+	tcDataSlice := GetInvalidTcData(fuzzData, 2)
+	//
+	i := 0
+	tcid := ""
+	for _, tcData := range tcDataSlice {
+		i = i + 1
+		tcid = "invalid" + strconv.Itoa(i)
 
-        combStr := ""
-        for ii, item := range tcData {
-            if ii == 0 {
-                combStr = combStr + fmt.Sprint(item)
-            } else{
-                combStr = combStr + "," + fmt.Sprint(item)
-            }
-        }
-        utils.GenerateFileBasedOnVarAppend(tcid + "," + combStr + "\n", outputsFile)  
-    }
+		combStr := ""
+		for ii, item := range tcData {
+			if ii == 0 {
+				combStr = combStr + fmt.Sprint(item)
+			} else {
+				combStr = combStr + "," + fmt.Sprint(item)
+			}
+		}
+		utils.GenerateFileBasedOnVarAppend(tcid+","+combStr+"\n", outputsFile)
+	}
 }
 
 func GetValidVectors(fuzzData FuzzData) [][]interface{} {
-    var validVectors [][]interface{}
-    for _, validDataMap := range fuzzData.ValidData {
-        for _, validList := range validDataMap {
-            validVectors = append(validVectors, validList)
-        }
-    }
+	var validVectors [][]interface{}
+	for _, validDataMap := range fuzzData.ValidData {
+		for _, validList := range validDataMap {
+			validVectors = append(validVectors, validList)
+		}
+	}
 
-    return validVectors
+	return validVectors
 }
 
 func GetInvalidVectors(fuzzData FuzzData) [][]interface{} {
-    var invalidVectors [][]interface{}
-    for _, invalidDataMap := range fuzzData.InvalidData {
-        for _, invalidList := range invalidDataMap {
-            invalidVectors = append(invalidVectors, invalidList)
-        }
-    }
-    return invalidVectors
+	var invalidVectors [][]interface{}
+	for _, invalidDataMap := range fuzzData.InvalidData {
+		for _, invalidList := range invalidDataMap {
+			invalidVectors = append(invalidVectors, invalidList)
+		}
+	}
+	return invalidVectors
 }
-
 
 func GetValidTcData(fuzzData FuzzData, pwLength int) [][]interface{} {
-    validVectors := GetValidVectors(fuzzData)
+	validVectors := GetValidVectors(fuzzData)
 
-    validTcData := GetPairWiseValid(validVectors, pwLength)
+	validTcData := GetPairWiseValid(validVectors, pwLength)
 
-    return validTcData
+	return validTcData
 }
-
 
 func GetInvalidTcData(fuzzData FuzzData, pwLength int) [][]interface{} {
-    validVectors := GetValidVectors(fuzzData)
-    invalidVectors := GetInvalidVectors(fuzzData)
+	validVectors := GetValidVectors(fuzzData)
+	invalidVectors := GetInvalidVectors(fuzzData)
 
-    fmt.Println("--> validVectors: ", validVectors)
-    fmt.Println("--> invalidVectors: ", invalidVectors)
-    invalidTcData := GetCombinationInvalid(validVectors, invalidVectors, pwLength)
+	fmt.Println("--> validVectors: ", validVectors)
+	fmt.Println("--> invalidVectors: ", invalidVectors)
+	invalidTcData := GetCombinationInvalid(validVectors, invalidVectors, pwLength)
 
-    return invalidTcData
+	return invalidTcData
 }
 
-
-//
 func GetPairWiseValid(validVectors [][]interface{}, pwLength int) [][]interface{} {
-    var validTcData [][]interface{}
+	var validTcData [][]interface{}
 
-    // need to consiber the len(combins) = 1 / = 2 / > 2
-    if len(validVectors) >= pwLength {
-        c := make(chan []interface{})
+	// need to consiber the len(combins) = 1 / = 2 / > 2
+	if len(validVectors) >= pwLength {
+		c := make(chan []interface{})
 
-        go func(c chan []interface{}) {
-            defer close(c)
-            pairwise.GetPairWise(c, validVectors, 2)
-        }(c)
+		go func(c chan []interface{}) {
+			defer close(c)
+			pairwise.GetPairWise(c, validVectors, 2)
+		}(c)
 
-        for tcData := range c {
-            validTcData = append(validTcData, tcData)
-        }
-    } else if len(validVectors) == 1{
-        for _, item := range validVectors[0] {
-            var itemSlice []interface{}
-            itemSlice = append(itemSlice, item)
-            validTcData = append(validTcData, itemSlice)
-        }
-    }
+		for tcData := range c {
+			validTcData = append(validTcData, tcData)
+		}
+	} else if len(validVectors) == 1 {
+		for _, item := range validVectors[0] {
+			var itemSlice []interface{}
+			itemSlice = append(itemSlice, item)
+			validTcData = append(validTcData, itemSlice)
+		}
+	}
 
-    return validTcData
+	return validTcData
 }
 
 // -- for the fuzz data
 func GetCombinationInvalid(validVectors [][]interface{}, invalidVectors [][]interface{}, pwLength int) [][]interface{} {
-    // to ensure each negative value will be combined with each positive value(s)
-    var invalidTcData [][]interface{}
+	// to ensure each negative value will be combined with each positive value(s)
+	var invalidTcData [][]interface{}
 
-    max := getMaxLenVector(validVectors)
+	max := getMaxLenVector(validVectors)
 
-    for i, _ := range invalidVectors {
-        for j, _ := range invalidVectors[i] { 
-            // loop the validVectors
-            for jj := 0; jj < max; jj++ {
-                tcData := make([]interface{}, len(validVectors))
-                for k := 0; k < len(validVectors); k++ {
-                    if i != k {
-                        if jj <= len(validVectors[k]) - 1 {
-                            tcData[k] = validVectors[k][jj]
-                        } else {
-                            // using the first one for valid vector
-                            tcData[k] = validVectors[k][0]
-                        }
-                    }
-                }
-                tcData[i] = invalidVectors[i][j]  
-                invalidTcData = append(invalidTcData, tcData)
-            }
-        }
-    }
-    
-    return invalidTcData
+	for i, _ := range invalidVectors {
+		for j, _ := range invalidVectors[i] {
+			// loop the validVectors
+			for jj := 0; jj < max; jj++ {
+				tcData := make([]interface{}, len(validVectors))
+				for k := 0; k < len(validVectors); k++ {
+					if i != k {
+						if jj <= len(validVectors[k])-1 {
+							tcData[k] = validVectors[k][jj]
+						} else {
+							// using the first one for valid vector
+							tcData[k] = validVectors[k][0]
+						}
+					}
+				}
+				tcData[i] = invalidVectors[i][j]
+				invalidTcData = append(invalidTcData, tcData)
+			}
+		}
+	}
+
+	return invalidTcData
 }
 
-func getMaxLenVector (vectors [][]interface{}) int {
-    max := 0
-    for i, _ := range vectors {
-        if len(vectors[i]) > max {
-            max = len(vectors[i])
-        }
-    }
-    return max
+func getMaxLenVector(vectors [][]interface{}) int {
+	max := 0
+	for i, _ := range vectors {
+		if len(vectors[i]) > max {
+			max = len(vectors[i])
+		}
+	}
+	return max
 }
-
-
-
-

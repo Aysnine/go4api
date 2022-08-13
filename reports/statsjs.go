@@ -11,143 +11,137 @@
 package reports
 
 import (
- 	// "fmt"
- 	// "strconv"
- 	"encoding/json"
+	// "fmt"
+	// "strconv"
+	"encoding/json"
 
-	// "go4api/lib/testcase"
-	"go4api/texttmpl"
-    "go4api/ui/js" 
+	// "github.com/Aysnine/go4api/lib/testcase"
+	"github.com/Aysnine/go4api/texttmpl"
+	"github.com/Aysnine/go4api/ui/js"
 
 	. "github.com/ahmetb/go-linq"
 )
 
 type ReportsStats struct {
-    ReportKey interface{}
-    Count int
+	ReportKey interface{}
+	Count     int
 }
 
 var (
-	// tcStats TcStats
+// tcStats TcStats
 )
 
-func GenerateStatsJs (tcReportSlice TcReportSlice, resultsDir string) {
-    statsFile := resultsDir + "/js/stats.js"
+func GenerateStatsJs(tcReportSlice TcReportSlice, resultsDir string) {
+	statsFile := resultsDir + "/js/stats.js"
 
-    reJsons := tcReportSlice.GetStatsJson()
-    texttmpl.GenerateStatsJs(js.Stats, statsFile, reJsons)
+	reJsons := tcReportSlice.GetStatsJson()
+	texttmpl.GenerateStatsJs(js.Stats, statsFile, reJsons)
 }
 
-func (tcReportSlice TcReportSlice) GetStatsJson () []string {
-    var reJsons []string
+func (tcReportSlice TcReportSlice) GetStatsJson() []string {
+	var reJsons []string
 
-    // for index.html details stats
-    statsGaugeJson := tcReportSlice.GetStatsGaugeJson()
-    reJsons = append(reJsons, statsGaugeJson)
+	// for index.html details stats
+	statsGaugeJson := tcReportSlice.GetStatsGaugeJson()
+	reJsons = append(reJsons, statsGaugeJson)
 
-    reportsStatsTotalSlice, reJsonTotal := tcReportSlice.GetTotalStatsJson()
-    reJsons = append(reJsons, reJsonTotal)
+	reportsStatsTotalSlice, reJsonTotal := tcReportSlice.GetTotalStatsJson()
+	reJsons = append(reJsons, reJsonTotal)
 
-    reJsonSuccess := tcReportSlice.GetSuccessStatsJson(reportsStatsTotalSlice)
-    reJsons = append(reJsons, reJsonSuccess)
+	reJsonSuccess := tcReportSlice.GetSuccessStatsJson(reportsStatsTotalSlice)
+	reJsons = append(reJsons, reJsonSuccess)
 
-    reJsonFail := tcReportSlice.GetFailStatsJson(reportsStatsTotalSlice)
-    reJsons = append(reJsons, reJsonFail)
+	reJsonFail := tcReportSlice.GetFailStatsJson(reportsStatsTotalSlice)
+	reJsons = append(reJsons, reJsonFail)
 
-    // for pie chart
-    reJsonOverallStatus := tcReportSlice.GetOverallStatusStatsJson()
-    reJsons = append(reJsons, reJsonOverallStatus)
+	// for pie chart
+	reJsonOverallStatus := tcReportSlice.GetOverallStatusStatsJson()
+	reJsons = append(reJsons, reJsonOverallStatus)
 
-    return reJsons
+	return reJsons
 }
 
 // ---
-func (tcReportSlice TcReportSlice) GetTotalStatsJson () ([]ReportsStats, string) {
-    query := tcReportSlice.GroupByTotalStartTime()
+func (tcReportSlice TcReportSlice) GetTotalStatsJson() ([]ReportsStats, string) {
+	query := tcReportSlice.GroupByTotalStartTime()
 
-    reportsStatsTotalSlice := PrintStatsGroup(query)
-    reJson, _ := json.MarshalIndent(reportsStatsTotalSlice, "", "\t")
+	reportsStatsTotalSlice := PrintStatsGroup(query)
+	reJson, _ := json.MarshalIndent(reportsStatsTotalSlice, "", "\t")
 
-    return reportsStatsTotalSlice, string(reJson)
+	return reportsStatsTotalSlice, string(reJson)
 }
 
+func (tcReportSlice TcReportSlice) GetSuccessStatsJson(reportsStatsTotalSlice []ReportsStats) string {
+	query := tcReportSlice.GroupBySuccessStartTime()
 
-func (tcReportSlice TcReportSlice) GetSuccessStatsJson (reportsStatsTotalSlice []ReportsStats) string {
-    query := tcReportSlice.GroupBySuccessStartTime()
+	reportsStatsSuccessSlice := PrintStatsGroup(query)
+	reportsStatsSuccessSliceOrdered := ToOrderStatsGroup(reportsStatsTotalSlice, reportsStatsSuccessSlice)
 
-    reportsStatsSuccessSlice := PrintStatsGroup(query)
-    reportsStatsSuccessSliceOrdered := ToOrderStatsGroup(reportsStatsTotalSlice, reportsStatsSuccessSlice)
+	reJson, _ := json.MarshalIndent(reportsStatsSuccessSliceOrdered, "", "\t")
 
-    reJson, _ := json.MarshalIndent(reportsStatsSuccessSliceOrdered, "", "\t")
-
-    return string(reJson)
+	return string(reJson)
 }
 
+func (tcReportSlice TcReportSlice) GetFailStatsJson(reportsStatsTotalSlice []ReportsStats) string {
+	query := tcReportSlice.GroupByFailStartTime()
 
-func (tcReportSlice TcReportSlice) GetFailStatsJson (reportsStatsTotalSlice []ReportsStats) string {
-    query := tcReportSlice.GroupByFailStartTime()
+	reportsStatsFailSlice := PrintStatsGroup(query)
+	reportsStatsFailSliceOrdered := ToOrderStatsGroup(reportsStatsTotalSlice, reportsStatsFailSlice)
 
-    reportsStatsFailSlice := PrintStatsGroup(query)
-    reportsStatsFailSliceOrdered := ToOrderStatsGroup(reportsStatsTotalSlice, reportsStatsFailSlice)
+	reJson, _ := json.MarshalIndent(reportsStatsFailSliceOrdered, "", "\t")
 
-    reJson, _ := json.MarshalIndent(reportsStatsFailSliceOrdered, "", "\t")
-
-    return string(reJson)
+	return string(reJson)
 }
 
 // --
-func (tcReportSlice TcReportSlice) GetOverallStatusStatsJson () string {
-    query := tcReportSlice.GroupByOverallStatus()
+func (tcReportSlice TcReportSlice) GetOverallStatusStatsJson() string {
+	query := tcReportSlice.GroupByOverallStatus()
 
-    reportsOverallStatusSlice := PrintStatsGroup(query)
+	reportsOverallStatusSlice := PrintStatsGroup(query)
 
-    reJson, _ := json.MarshalIndent(reportsOverallStatusSlice, "", "\t")
+	reJson, _ := json.MarshalIndent(reportsOverallStatusSlice, "", "\t")
 
-    return string(reJson)
+	return string(reJson)
 }
 
-func PrintStatsGroup (query []Group) []ReportsStats {
-    var reportsStatsSlice []ReportsStats
+func PrintStatsGroup(query []Group) []ReportsStats {
+	var reportsStatsSlice []ReportsStats
 
-    for _, q := range query {
-        reportsStats := ReportsStats {
-            ReportKey: q.Key,
-            Count: len(q.Group),
-        }
-        reportsStatsSlice = append(reportsStatsSlice, reportsStats)
-    }
-    return reportsStatsSlice
+	for _, q := range query {
+		reportsStats := ReportsStats{
+			ReportKey: q.Key,
+			Count:     len(q.Group),
+		}
+		reportsStatsSlice = append(reportsStatsSlice, reportsStats)
+	}
+	return reportsStatsSlice
 }
 
-func ToOrderStatsGroup (reportsStatsTotalSlice []ReportsStats, reportsStatsSlice []ReportsStats) []ReportsStats {
-    var reportsStatsOrdered []ReportsStats
+func ToOrderStatsGroup(reportsStatsTotalSlice []ReportsStats, reportsStatsSlice []ReportsStats) []ReportsStats {
+	var reportsStatsOrdered []ReportsStats
 
-    for i, _ := range reportsStatsTotalSlice {
-        inx := -1
-        for j, _ := range reportsStatsSlice {
-            if reportsStatsTotalSlice[i].ReportKey == reportsStatsSlice[j].ReportKey {
-                inx = j
-                continue
-            }
-        }
-        if inx != -1 {
-            reportsStats := ReportsStats {
-                ReportKey: reportsStatsTotalSlice[i].ReportKey,
-                Count: reportsStatsSlice[inx].Count,
-            }
-            reportsStatsOrdered = append(reportsStatsOrdered, reportsStats)
-        } else {
-            reportsStats := ReportsStats {
-                ReportKey: reportsStatsTotalSlice[i].ReportKey,
-                Count: 0,
-            }
-            reportsStatsOrdered = append(reportsStatsOrdered, reportsStats)
-        }
-    }
+	for i, _ := range reportsStatsTotalSlice {
+		inx := -1
+		for j, _ := range reportsStatsSlice {
+			if reportsStatsTotalSlice[i].ReportKey == reportsStatsSlice[j].ReportKey {
+				inx = j
+				continue
+			}
+		}
+		if inx != -1 {
+			reportsStats := ReportsStats{
+				ReportKey: reportsStatsTotalSlice[i].ReportKey,
+				Count:     reportsStatsSlice[inx].Count,
+			}
+			reportsStatsOrdered = append(reportsStatsOrdered, reportsStats)
+		} else {
+			reportsStats := ReportsStats{
+				ReportKey: reportsStatsTotalSlice[i].ReportKey,
+				Count:     0,
+			}
+			reportsStatsOrdered = append(reportsStatsOrdered, reportsStats)
+		}
+	}
 
-    return reportsStatsOrdered
+	return reportsStatsOrdered
 }
-
-
-
-

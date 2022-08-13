@@ -11,13 +11,13 @@
 package api
 
 import (
- 	// "fmt"
+	// "fmt"
 
- 	gredis "go4api/db/redis"
+	gredis "github.com/Aysnine/go4api/db/redis"
 )
 
-func RunRedis (cmdStr string, cmdKey string, cmdValue string) (int, interface{}, string) {
-   	keysCount, cmdResults, redExecStatus := gredis.Run(cmdStr, cmdKey, cmdValue)
+func RunRedis(cmdStr string, cmdKey string, cmdValue string) (int, interface{}, string) {
+	keysCount, cmdResults, redExecStatus := gredis.Run(cmdStr, cmdKey, cmdValue)
 
-    return keysCount, cmdResults, redExecStatus
+	return keysCount, cmdResults, redExecStatus
 }

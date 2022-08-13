@@ -11,29 +11,28 @@
 package reports
 
 import (
- 	// "encoding/json"
+	// "encoding/json"
 
-	"go4api/lib/testcase"
+	"github.com/Aysnine/go4api/lib/testcase"
 )
 
 type TcReportSlice []*testcase.TcReportResults
 
-func (tcReportSlice TcReportSlice) ClassifyResults () (TcReportSlice, TcReportSlice, TcReportSlice) {
-    var setUpResultSlice TcReportSlice
-    var normalResultSlice TcReportSlice
-    var tearDownResultSlice TcReportSlice
+func (tcReportSlice TcReportSlice) ClassifyResults() (TcReportSlice, TcReportSlice, TcReportSlice) {
+	var setUpResultSlice TcReportSlice
+	var normalResultSlice TcReportSlice
+	var tearDownResultSlice TcReportSlice
 
-    for i, _ := range tcReportSlice {
-        switch tcReportSlice[i].IfGlobalSetUpTearDown {
-            case "SetUp":
-                setUpResultSlice = append(setUpResultSlice, tcReportSlice[i])
-            case "TearDown":
-                tearDownResultSlice = append(tearDownResultSlice, tcReportSlice[i])
-            default:
-                normalResultSlice = append(normalResultSlice, tcReportSlice[i])
-        }
-    }
+	for i, _ := range tcReportSlice {
+		switch tcReportSlice[i].IfGlobalSetUpTearDown {
+		case "SetUp":
+			setUpResultSlice = append(setUpResultSlice, tcReportSlice[i])
+		case "TearDown":
+			tearDownResultSlice = append(tearDownResultSlice, tcReportSlice[i])
+		default:
+			normalResultSlice = append(normalResultSlice, tcReportSlice[i])
+		}
+	}
 
-    return setUpResultSlice, normalResultSlice, tearDownResultSlice
+	return setUpResultSlice, normalResultSlice, tearDownResultSlice
 }
-

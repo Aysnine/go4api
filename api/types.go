@@ -11,59 +11,55 @@
 package api
 
 import (
-    "go4api/lib/testcase" 
+	"github.com/Aysnine/go4api/lib/testcase"
 )
 
 type TcDataStore struct {
-    TcData *testcase.TestCaseDataInfo
+	TcData *testcase.TestCaseDataInfo
 
-    TcLocalVariables map[string]interface{}
+	TcLocalVariables map[string]interface{}
 
-    HttpExpStatus    map[string]interface{}
-    HttpExpHeader    map[string]interface{}
-    HttpExpBody      map[string]interface{}
-    HttpActualStatusCode int
-    HttpActualHeader map[string][]string
-    HttpActualBody   []byte
+	HttpExpStatus        map[string]interface{}
+	HttpExpHeader        map[string]interface{}
+	HttpExpBody          map[string]interface{}
+	HttpActualStatusCode int
+	HttpActualHeader     map[string][]string
+	HttpActualBody       []byte
 
-    HttpUrl    string
+	HttpUrl string
 
-    CmdSection string // setUp, tearDown
-    CmdGroupLength int
-    
-    CmdType       string // sql, redis, init, etc.
-    CmdExecStatus string
-    CmdAffectedCount int
-    CmdResults    interface{}
+	CmdSection     string // setUp, tearDown
+	CmdGroupLength int
+
+	CmdType          string // sql, redis, init, etc.
+	CmdExecStatus    string
+	CmdAffectedCount int
+	CmdResults       interface{}
 }
 
-func InitTcDataStore (tcData *testcase.TestCaseDataInfo) *TcDataStore {
-    tcDataStore := &TcDataStore {
-        TcData:               tcData,
+func InitTcDataStore(tcData *testcase.TestCaseDataInfo) *TcDataStore {
+	tcDataStore := &TcDataStore{
+		TcData: tcData,
 
-        TcLocalVariables:     map[string]interface{}{},
+		TcLocalVariables: map[string]interface{}{},
 
-        HttpExpStatus:        map[string]interface{}{},
-        HttpExpHeader:        map[string]interface{}{},
-        HttpExpBody:          map[string]interface{}{},
-        HttpActualStatusCode: -1,
-        HttpActualHeader:     map[string][]string{},
-        HttpActualBody:       []byte{},
+		HttpExpStatus:        map[string]interface{}{},
+		HttpExpHeader:        map[string]interface{}{},
+		HttpExpBody:          map[string]interface{}{},
+		HttpActualStatusCode: -1,
+		HttpActualHeader:     map[string][]string{},
+		HttpActualBody:       []byte{},
 
-        HttpUrl:          "",
+		HttpUrl: "",
 
-        CmdSection:       "",
-        CmdGroupLength:   0,
+		CmdSection:     "",
+		CmdGroupLength: 0,
 
-        CmdType:          "",
-        CmdExecStatus:    "",
-        CmdAffectedCount: -1,
-        CmdResults:       -1,
-    }
-    
-    return tcDataStore
+		CmdType:          "",
+		CmdExecStatus:    "",
+		CmdAffectedCount: -1,
+		CmdResults:       -1,
+	}
+
+	return tcDataStore
 }
-
-
-
-

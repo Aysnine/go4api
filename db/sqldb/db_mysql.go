@@ -11,47 +11,46 @@
 package gsql
 
 import (
-    "fmt"
-    "strings"
-    "database/sql"
+	"database/sql"
+	"fmt"
+	"strings"
 
-    "go4api/cmd"
-    "go4api/utils"
+	"github.com/Aysnine/go4api/cmd"
+	"github.com/Aysnine/go4api/utils"
 
-    _ "github.com/go-sql-driver/mysql"
+	_ "github.com/go-sql-driver/mysql"
 )
 
-func InitMySqlConnection () map[string]*sql.DB {
-    sqlCons := make(map[string]*sql.DB)
+func InitMySqlConnection() map[string]*sql.DB {
+	sqlCons := make(map[string]*sql.DB)
 
-    dbs := cmd.GetDbConfig()
+	dbs := cmd.GetDbConfig()
 
-    for k, v := range dbs {
-        envMap := utils.GetOsEnviron()
-  
-        ip := renderValue(v.Ip, envMap)
-        port := renderValue(fmt.Sprint(v.Port), envMap)
-        user := renderValue(v.UserName, envMap)
-        password := renderValue(v.Password, envMap)
-        // dbname := renderValue(v.Dbname, envMap)
-        
-        defaultSchema := ""
+	for k, v := range dbs {
+		envMap := utils.GetOsEnviron()
 
-        conInfo := user + ":" + password + "@tcp(" + ip + ":" + port + ")/" + defaultSchema
-        db, _ := sql.Open("mysql", conInfo)
-        db.SetMaxOpenConns(2000)
-        db.SetMaxIdleConns(1000)
+		ip := renderValue(v.Ip, envMap)
+		port := renderValue(fmt.Sprint(v.Port), envMap)
+		user := renderValue(v.UserName, envMap)
+		password := renderValue(v.Password, envMap)
+		// dbname := renderValue(v.Dbname, envMap)
 
-        err := db.Ping()
-        if err != nil {
-            fmt.Println(err)
-            panic(err)
-        }
+		defaultSchema := ""
 
-        dbIndicator := strings.ToLower(k)
-        sqlCons[dbIndicator] = db
-    }
+		conInfo := user + ":" + password + "@tcp(" + ip + ":" + port + ")/" + defaultSchema
+		db, _ := sql.Open("mysql", conInfo)
+		db.SetMaxOpenConns(2000)
+		db.SetMaxIdleConns(1000)
 
-    return sqlCons
-} 
+		err := db.Ping()
+		if err != nil {
+			fmt.Println(err)
+			panic(err)
+		}
 
+		dbIndicator := strings.ToLower(k)
+		sqlCons[dbIndicator] = db
+	}
+
+	return sqlCons
+}

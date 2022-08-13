@@ -11,39 +11,37 @@
 package reports
 
 import (
-    // "fmt"
-    "encoding/json"
+	// "fmt"
+	"encoding/json"
 
-    "go4api/lib/testcase"
+	"github.com/Aysnine/go4api/lib/testcase"
 
-    . "github.com/ahmetb/go-linq"
+	. "github.com/ahmetb/go-linq"
 )
 
+func (tcReportSlice TcReportSlice) GroupByTestSuite() []Group {
+	type ReportsStuct struct {
+		TestSuite string
+	}
 
+	var query []Group
 
-func (tcReportSlice TcReportSlice) GroupByTestSuite () []Group {
-    type ReportsStuct struct {
-        TestSuite string
-    }
+	From(tcReportSlice).GroupByT(
+		func(item *testcase.TcReportResults) ReportsStuct {
+			return ReportsStuct{item.TestSuite}
+		},
+		func(item *testcase.TcReportResults) int64 { return 1 },
+	).ToSlice(&query)
 
-    var query []Group
-
-    From(tcReportSlice).GroupByT(
-        func(item *testcase.TcReportResults) ReportsStuct { 
-            return ReportsStuct{item.TestSuite}
-        },
-        func(item *testcase.TcReportResults) int64 { return 1 },
-    ).ToSlice(&query)
-
-    return query
+	return query
 }
 
-func (tcReportSlice TcReportSlice) GetOverallTestSuiteStatusStatsJson () string {
-    query := tcReportSlice.GroupByTestSuite()
+func (tcReportSlice TcReportSlice) GetOverallTestSuiteStatusStatsJson() string {
+	query := tcReportSlice.GroupByTestSuite()
 
-    reportsOverallStatusSlice := PrintStatsGroup(query)
+	reportsOverallStatusSlice := PrintStatsGroup(query)
 
-    reJson, _ := json.MarshalIndent(reportsOverallStatusSlice, "", "\t")
+	reJson, _ := json.MarshalIndent(reportsOverallStatusSlice, "", "\t")
 
-    return string(reJson)
+	return string(reJson)
 }

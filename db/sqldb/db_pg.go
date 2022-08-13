@@ -11,55 +11,55 @@
 package gsql
 
 import (
-    "fmt"
-    "strings"
-    "database/sql"
+	"database/sql"
+	"fmt"
+	"strings"
 
-    "go4api/cmd"
-    "go4api/utils"
+	"github.com/Aysnine/go4api/cmd"
+	"github.com/Aysnine/go4api/utils"
 
-    _ "github.com/lib/pq"
+	_ "github.com/lib/pq"
 )
 
 // var db = &sql.DB{}
-func InitPgConnection () map[string]*sql.DB {
-    sqlCons := make(map[string]*sql.DB)
-    //
-    dbs := cmd.GetPgDbConfig()
+func InitPgConnection() map[string]*sql.DB {
+	sqlCons := make(map[string]*sql.DB)
+	//
+	dbs := cmd.GetPgDbConfig()
 
-    for k, v := range dbs {
-        envMap := utils.GetOsEnviron()
-  
-        ip := renderValue(v.Ip, envMap)
-        port := renderValue(fmt.Sprint(v.Port), envMap)
-        userName := renderValue(v.UserName, envMap)
-        password := renderValue(v.Password, envMap)
-        dbname := renderValue(v.Dbname, envMap)
-        sslmode := renderValue(v.Sslmode, envMap)
+	for k, v := range dbs {
+		envMap := utils.GetOsEnviron()
 
-        // conInfo := "postgres://pqgotest:password@localhost/pqgotest?sslmode=verify-full"
-        // conInfo := "postgres://" +  user + ":" + pw + "@" + ip + ":" + fmt.Sprint(port)
-        h := " host=" + ip
-        u := "user=" + userName 
-        pa := " password=" + password
-        po := " port=" + port
-        d := " dbname=" + dbname
-        ssl := " sslmode=" + sslmode
-        conInfo := u + pa + h + po + d + ssl
-    
-        db, _ := sql.Open("postgres", conInfo)
-        db.SetMaxOpenConns(2000)
-        db.SetMaxIdleConns(1000)
+		ip := renderValue(v.Ip, envMap)
+		port := renderValue(fmt.Sprint(v.Port), envMap)
+		userName := renderValue(v.UserName, envMap)
+		password := renderValue(v.Password, envMap)
+		dbname := renderValue(v.Dbname, envMap)
+		sslmode := renderValue(v.Sslmode, envMap)
 
-        err := db.Ping()
-        if err != nil {
-            fmt.Println("Err, pg connection is not established. ", err)
-            panic(err)
-        }
+		// conInfo := "postgres://pqgotest:password@localhost/pqgotest?sslmode=verify-full"
+		// conInfo := "postgres://" +  user + ":" + pw + "@" + ip + ":" + fmt.Sprint(port)
+		h := " host=" + ip
+		u := "user=" + userName
+		pa := " password=" + password
+		po := " port=" + port
+		d := " dbname=" + dbname
+		ssl := " sslmode=" + sslmode
+		conInfo := u + pa + h + po + d + ssl
 
-        dbIndicator := strings.ToLower(k)
-        sqlCons[dbIndicator] = db
-    }
+		db, _ := sql.Open("postgres", conInfo)
+		db.SetMaxOpenConns(2000)
+		db.SetMaxIdleConns(1000)
 
-    return sqlCons
-} 
+		err := db.Ping()
+		if err != nil {
+			fmt.Println("Err, pg connection is not established. ", err)
+			panic(err)
+		}
+
+		dbIndicator := strings.ToLower(k)
+		sqlCons[dbIndicator] = db
+	}
+
+	return sqlCons
+}

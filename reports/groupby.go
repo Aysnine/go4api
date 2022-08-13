@@ -11,12 +11,12 @@
 package reports
 
 import (
- 	// "fmt"
- 	// "strconv"
- 	// "encoding/json"
+	// "fmt"
+	// "strconv"
+	// "encoding/json"
 
-	"go4api/lib/testcase"
-	// "go4api/texttmpl"
+	"github.com/Aysnine/go4api/lib/testcase"
+	// "github.com/Aysnine/go4api/texttmpl"
 
 	. "github.com/ahmetb/go-linq"
 )
@@ -26,73 +26,71 @@ import (
 // StampMicro = "Jan _2 15:04:05.000000"
 // StampNano  = "Jan _2 15:04:05.000000000"
 
-func (tcReportSlice TcReportSlice) GroupByTotalStartTime () []Group {
-    var tcReportSubSlice []int64
-    for i, _ := range tcReportSlice {
-        tcReportSubSlice = append(tcReportSubSlice, (tcReportSlice[i].StartTimeUnixNano / 1000 / 1000 / 1000) * 1000)
-    }
+func (tcReportSlice TcReportSlice) GroupByTotalStartTime() []Group {
+	var tcReportSubSlice []int64
+	for i, _ := range tcReportSlice {
+		tcReportSubSlice = append(tcReportSubSlice, (tcReportSlice[i].StartTimeUnixNano/1000/1000/1000)*1000)
+	}
 
-    query := GroupByStartTime(tcReportSubSlice)
+	query := GroupByStartTime(tcReportSubSlice)
 
-    return query
+	return query
 }
 
+func (tcReportSlice TcReportSlice) GroupBySuccessStartTime() []Group {
+	var tcReportSubSlice []int64
+	for i, _ := range tcReportSlice {
+		if tcReportSlice[i].TestResult == "Success" {
+			tcReportSubSlice = append(tcReportSubSlice, (tcReportSlice[i].StartTimeUnixNano/1000/1000/1000)*1000)
+		}
+	}
 
-func (tcReportSlice TcReportSlice) GroupBySuccessStartTime () []Group {
-    var tcReportSubSlice []int64
-    for i, _ := range tcReportSlice {
-        if tcReportSlice[i].TestResult == "Success" {
-            tcReportSubSlice = append(tcReportSubSlice, (tcReportSlice[i].StartTimeUnixNano / 1000 / 1000 / 1000) * 1000)
-        }
-    }
+	query := GroupByStartTime(tcReportSubSlice)
 
-    query := GroupByStartTime(tcReportSubSlice)
-
-    return query
+	return query
 }
 
-func (tcReportSlice TcReportSlice) GroupByFailStartTime () []Group {
-    var tcReportSubSlice []int64
-    for i, _ := range tcReportSlice {
-        if tcReportSlice[i].TestResult == "Fail" {
-            tcReportSubSlice = append(tcReportSubSlice, (tcReportSlice[i].StartTimeUnixNano / 1000 / 1000 / 1000) * 1000)
-        }
-    }
+func (tcReportSlice TcReportSlice) GroupByFailStartTime() []Group {
+	var tcReportSubSlice []int64
+	for i, _ := range tcReportSlice {
+		if tcReportSlice[i].TestResult == "Fail" {
+			tcReportSubSlice = append(tcReportSubSlice, (tcReportSlice[i].StartTimeUnixNano/1000/1000/1000)*1000)
+		}
+	}
 
-    query := GroupByStartTime(tcReportSubSlice)
+	query := GroupByStartTime(tcReportSubSlice)
 
-    return query
+	return query
 }
 
-func GroupByStartTime (execStartSlice []int64) []Group {
-    var query []Group
+func GroupByStartTime(execStartSlice []int64) []Group {
+	var query []Group
 
-    From(execStartSlice).GroupByT(
-        func(item int64) int64 { 
-            return item
-        },
-        func(item int64) int { return 1 },
-    ).OrderByT(
-        func(g Group) int64 { return g.Key.(int64)},
-    ).ToSlice(&query)
+	From(execStartSlice).GroupByT(
+		func(item int64) int64 {
+			return item
+		},
+		func(item int64) int { return 1 },
+	).OrderByT(
+		func(g Group) int64 { return g.Key.(int64) },
+	).ToSlice(&query)
 
-    return query
+	return query
 }
 
+func (tcReportSlice TcReportSlice) GroupByOverallStatus() []Group {
+	type ReportsStuct struct {
+		TestResult string
+	}
 
-func (tcReportSlice TcReportSlice) GroupByOverallStatus () []Group {
-    type ReportsStuct struct {
-        TestResult string
-    }
+	var query []Group
 
-    var query []Group
+	From(tcReportSlice).GroupByT(
+		func(item *testcase.TcReportResults) ReportsStuct {
+			return ReportsStuct{item.TestResult}
+		},
+		func(item *testcase.TcReportResults) int64 { return 1 },
+	).ToSlice(&query)
 
-    From(tcReportSlice).GroupByT(
-        func(item *testcase.TcReportResults) ReportsStuct { 
-            return ReportsStuct{item.TestResult}
-        },
-        func(item *testcase.TcReportResults) int64 { return 1 },
-    ).ToSlice(&query)
-
-    return query
+	return query
 }

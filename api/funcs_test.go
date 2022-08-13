@@ -11,17 +11,17 @@
 package api
 
 import (
-    "fmt"
-    "testing"
-    // "strings"
-    // "encoding/csv"
-    "encoding/json"
+	"fmt"
+	"testing"
 
-    "go4api/lib/testcase"
-    "go4api/api"
+	// "strings"
+	// "encoding/csv"
+	"encoding/json"
 
-    // gjson "github.com/tidwall/gjson"
-    // sjson "github.com/tidwall/sjson"
+	"github.com/Aysnine/go4api/api"
+	"github.com/Aysnine/go4api/lib/testcase"
+	// gjson "github.com/tidwall/gjson"
+	// sjson "github.com/tidwall/sjson"
 )
 
 var tcSampleStr string
@@ -30,8 +30,8 @@ var value interface{}
 var value_2 interface{}
 var tcData testcase.TestCaseDataInfo
 
-func init () {
-    tcSampleStr = `
+func init() {
+	tcSampleStr = `
       {
         "TestCase": {
           "casename-0001": {
@@ -54,7 +54,7 @@ func init () {
         }
       }
         `
-    tcSampleStr_2 = `
+	tcSampleStr_2 = `
       {
         "TestCase": {
           "casename-0002": {
@@ -95,35 +95,34 @@ func init () {
       }
         `
 
-    // json.Unmarshal([]byte(tcSampleStr), &value)
-    // json.Unmarshal([]byte(tcSampleStr_2), &value_2)
+	// json.Unmarshal([]byte(tcSampleStr), &value)
+	// json.Unmarshal([]byte(tcSampleStr_2), &value_2)
 
-    json.Unmarshal([]byte(tcSampleStr_2), &tcData)
-    tcJson, _ := json.MarshalIndent(tcData, "", "\t")
-    fmt.Println("origin tcdata: ", string(tcJson))
+	json.Unmarshal([]byte(tcSampleStr_2), &tcData)
+	tcJson, _ := json.MarshalIndent(tcData, "", "\t")
+	fmt.Println("origin tcdata: ", string(tcJson))
 }
 
+func Test_EvaluateEmbeddedFunctions_1(t *testing.T) {
+	res := api.EvaluateEmbeddedFunctions(tcData)
 
-func Test_EvaluateEmbeddedFunctions_1 (t *testing.T) {
-    res := api.EvaluateEmbeddedFunctions(tcData)
-    
-    resj, _ := json.MarshalIndent(res, "", "\t")
-    fmt.Println(string(resj))
-    
-    a := "12"
-    if len(a) != 13 {
-        t.Fatalf("json parse failed")
-    } else {
-        t.Log("json parse passed")
-    }
+	resj, _ := json.MarshalIndent(res, "", "\t")
+	fmt.Println(string(resj))
+
+	a := "12"
+	if len(a) != 13 {
+		t.Fatalf("json parse failed")
+	} else {
+		t.Log("json parse passed")
+	}
 }
 
 // func Test_EvaluateEmbeddedFunctions (t *testing.T) {
 //     res := api.EvaluateEmbeddedFunctions(tcData)
-    
+
 //     resj, _ := json.MarshalIndent(res, "", "\t")
 //     fmt.Println(string(resj))
-    
+
 //     a := "12"
 //     if len(a) != 13 {
 //         t.Fatalf("json parse failed")
@@ -131,6 +130,3 @@ func Test_EvaluateEmbeddedFunctions_1 (t *testing.T) {
 //         t.Log("json parse passed")
 //     }
 // }
-
-
-

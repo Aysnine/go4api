@@ -11,16 +11,16 @@
 package executor
 
 import (
-    "go4api/lib/testcase"
+	"github.com/Aysnine/go4api/lib/testcase"
 )
 
-func InitGlobalSetUpTcSlice (fullTcSlice []*testcase.TestCaseDataInfo) []*testcase.TestCaseDataInfo {
-    var tcSlice []*testcase.TestCaseDataInfo
-    for i, _ := range fullTcSlice {
-        if fullTcSlice[i].TestCase.IfGlobalSetUpTestCase() == true {
-            tcSlice = append(tcSlice, fullTcSlice[i])
-        }
-    }
-    
-    return tcSlice
+func InitGlobalSetUpTcSlice(fullTcSlice []*testcase.TestCaseDataInfo) []*testcase.TestCaseDataInfo {
+	var tcSlice []*testcase.TestCaseDataInfo
+	for i, _ := range fullTcSlice {
+		if fullTcSlice[i].TestCase.IfGlobalSetUpTestCase() == true {
+			tcSlice = append(tcSlice, fullTcSlice[i])
+		}
+	}
+
+	return tcSlice
 }

@@ -7,14 +7,14 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
  */
- 
+
 package cmd
 
 import (
-    "fmt"
-    "encoding/json"
+	"encoding/json"
+	"fmt"
 
-    "go4api/utils"
+	"github.com/Aysnine/go4api/utils"
 )
 
 var config Config
@@ -23,90 +23,86 @@ var tEnv string
 type Config map[string]*Environment
 
 type Environment struct {
-    BaseUrl    string
-    TimeZone   string
-    Mysql      map[string]*DbDetails
-    PostgreSql map[string]*DbDetails
-    Redis      map[string]*RedisDetails
-    MongoDB    map[string]*MongDBDetails
+	BaseUrl    string
+	TimeZone   string
+	Mysql      map[string]*DbDetails
+	PostgreSql map[string]*DbDetails
+	Redis      map[string]*RedisDetails
+	MongoDB    map[string]*MongDBDetails
 }
 
-//
 type DbDetails struct {
-    SqlCon   interface{}
-    Ip       string
-    Port     interface{}
-    UserName string
-    Password string
-    Dbname   string
-    Sslmode  string
+	SqlCon   interface{}
+	Ip       string
+	Port     interface{}
+	UserName string
+	Password string
+	Dbname   string
+	Sslmode  string
 }
 
 type RedisDetails struct {
-    RedisCon interface{}
-    Ip       string
-    Port     interface{}
-    UserName string
-    Password string
+	RedisCon interface{}
+	Ip       string
+	Port     interface{}
+	UserName string
+	Password string
 }
 
 type MongDBDetails struct {
-    MongDBCon interface{}
-    Ip        string
-    Port      interface{}
-    UserName  string
-    Password  string
+	MongDBCon interface{}
+	Ip        string
+	Port      interface{}
+	UserName  string
+	Password  string
 }
 
-//
-func SetTestEnv () {
-    if Opt.TestEnv != "" {
-        tEnv = Opt.TestEnv
-    } else {
-        tEnv = "QA"
-    }
-}
-    
-func GetConfig () Config {
-    if len(Opt.Testconfig) > 0 {
-        configJson := utils.GetJsonFromFile(Opt.Testconfig)
-
-        e := json.Unmarshal([]byte(configJson), &config)
-        if e != nil {
-            fmt.Println("Unmarshal error: ")
-            panic(e)
-        }
-
-        return config
-    } else {
-        return map[string]*Environment{}
-    }
+func SetTestEnv() {
+	if Opt.TestEnv != "" {
+		tEnv = Opt.TestEnv
+	} else {
+		tEnv = "QA"
+	}
 }
 
-func GetBaseUrlFromConfig () string {
-        return config[tEnv].BaseUrl
+func GetConfig() Config {
+	if len(Opt.Testconfig) > 0 {
+		configJson := utils.GetJsonFromFile(Opt.Testconfig)
+
+		e := json.Unmarshal([]byte(configJson), &config)
+		if e != nil {
+			fmt.Println("Unmarshal error: ")
+			panic(e)
+		}
+
+		return config
+	} else {
+		return map[string]*Environment{}
+	}
 }
 
-func GetTimeZoneConfig () string {
-        return config[tEnv].TimeZone
+func GetBaseUrlFromConfig() string {
+	return config[tEnv].BaseUrl
+}
+
+func GetTimeZoneConfig() string {
+	return config[tEnv].TimeZone
 }
 
 // mysql
-func GetDbConfig () map[string]*DbDetails {
-        return config[tEnv].Mysql
+func GetDbConfig() map[string]*DbDetails {
+	return config[tEnv].Mysql
 }
 
 // postgresql
-func GetPgDbConfig () map[string]*DbDetails {
-        return config[tEnv].PostgreSql
+func GetPgDbConfig() map[string]*DbDetails {
+	return config[tEnv].PostgreSql
 }
 
-func GetRedisConfig () map[string]*RedisDetails {
-        return config[tEnv].Redis
+func GetRedisConfig() map[string]*RedisDetails {
+	return config[tEnv].Redis
 }
 
-func GetMongoDBConfig () map[string]*MongDBDetails {
-        return config[tEnv].MongoDB
+func GetMongoDBConfig() map[string]*MongDBDetails {
+	return config[tEnv].MongoDB
 }
-
-

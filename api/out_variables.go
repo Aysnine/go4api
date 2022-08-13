@@ -11,43 +11,41 @@
 package api
 
 import (
-    // "fmt"
+	// "fmt"
 
-    gsession "go4api/lib/session"
+	gsession "github.com/Aysnine/go4api/lib/session"
 )
 
+func (tcDataStore *TcDataStore) WriteOutGlobalVariables(expOutGlobalVariables map[string]interface{}) {
+	if expOutGlobalVariables != nil {
+		for k, v := range expOutGlobalVariables {
+			var value interface{}
 
-func (tcDataStore *TcDataStore) WriteOutGlobalVariables (expOutGlobalVariables map[string]interface{}) {
-    if expOutGlobalVariables != nil {
-        for k, v := range expOutGlobalVariables {
-            var value interface{}
+			switch v.(type) {
+			case string:
+				value = tcDataStore.GetResponseValue(v.(string))
+			case int, int64, float64:
+				value = v
+			}
 
-            switch v.(type) {
-            case string:
-                value = tcDataStore.GetResponseValue(v.(string))
-            case int, int64, float64:
-                value = v
-            }
-
-            gsession.WriteGlobalVariables(k, value)
-        } 
-    }
+			gsession.WriteGlobalVariables(k, value)
+		}
+	}
 }
 
-func (tcDataStore *TcDataStore) WriteOutTcLocalVariables (expOutLocalVariables map[string]interface{}) {
-    if expOutLocalVariables != nil {
-        for k, v := range expOutLocalVariables {
-            var value interface{}
+func (tcDataStore *TcDataStore) WriteOutTcLocalVariables(expOutLocalVariables map[string]interface{}) {
+	if expOutLocalVariables != nil {
+		for k, v := range expOutLocalVariables {
+			var value interface{}
 
-            switch v.(type) {
-            case string:
-                value = tcDataStore.GetResponseValue(v.(string))
-            case int, int64, float64:
-                value = v
-            }
+			switch v.(type) {
+			case string:
+				value = tcDataStore.GetResponseValue(v.(string))
+			case int, int64, float64:
+				value = v
+			}
 
-            tcDataStore.TcLocalVariables[k] = value
-        } 
-    }
+			tcDataStore.TcLocalVariables[k] = value
+		}
+	}
 }
-

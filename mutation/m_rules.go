@@ -10,20 +10,20 @@
 
 package mutation
 
-import (                                                                                                                                             
-    // "os"
-    "time"
-    "fmt"
-    "math"
-    "reflect"
-    "runtime"
-    // "path/filepath"
-    "strings"
-    "math/rand"
-    // "strconv"
-    // "go4api/utils"  
+import (
+	// "os"
+	"fmt"
+	"math"
+	"reflect"
+	"runtime"
+	"time"
 
-    // "go4api/lib/testcase"
+	// "path/filepath"
+	"math/rand"
+	"strings"
+	// "strconv"
+	// "github.com/Aysnine/go4api/utils"
+	// "github.com/Aysnine/go4api/lib/testcase"
 )
 
 // JSON Schema defines the following basic types:
@@ -37,7 +37,7 @@ import (
 //----------------------------------------------
 //------- Mutation Rules - Types ---------------
 //----------------------------------------------
-//------ mutation: if normal char 
+//------ mutation: if normal char
 // (1) -> empty ("")
 // (2) -> blank (" ")
 // (3) -> prefix blank (" " + previousValue)
@@ -60,7 +60,6 @@ import (
 // (6) -> change type (complex, i.e. object, arrary)
 // (7) -> remove this node
 
-
 //------ mutation: if not normal char -> timestamp/date/time/...
 // (1) -> empty ("")
 // (2) -> blank (" ")
@@ -74,7 +73,6 @@ import (
 // (10) -> change type (complex, i.e. object, arrary)
 // (11) -> remove this node
 
-
 //------ mutation: if not normal char -> email
 // (1) -> empty ("")
 // (2) -> blank (" ")
@@ -84,7 +82,6 @@ import (
 // (6) -> change type (simple, i.e. to float64/bool...)
 // (7) -> change type (complex, i.e. object, arrary)
 // (8) -> remove this node
-
 
 //------ mutation: if Numeric -> float64
 // (1) -> zero (0)
@@ -112,7 +109,6 @@ import (
 // (6) -> change type (i.e. to string/float64/bool...)
 // (7) -> change type (complex, i.e. object, arrary)
 
-
 //----------------------------------------------
 //------- Mutation Rules - Header --------------
 //----------------------------------------------
@@ -129,756 +125,744 @@ import (
 // (3) -> remove key/value (one each time)
 // (4) -> remove key/value (all)
 
-
 var (
-    nilNull *int
+	nilNull *int
 )
 
-//
 func (mFd *MFieldDetails) DetermineMutationType() {
-    var mType string
-    switch strings.ToLower(mFd.FieldType) {
-        case "char", "string":
-            switch strings.ToLower(mFd.FieldSubType) {
-                case "numeric":
-                    mType = "MCharNumeric"
-                case "alpha":
-                    mType = "MCharAlpha"
-                case "alphanumeric":
-                    mType = "MCharAlphaNumeric"
-                case "time":
-                    mType = "MCharTime"
-                case "email":
-                    mType = "MCharEmail"
-                case "ip":
-                    mType = "MCharIp"
-                default: 
-                    mType = "MChar"
-            }
-        case "int":
-            switch strings.ToLower(mFd.FieldSubType) {
-                case "time":
-                    mType = "MIntTime"
-                default:
-                    mType = "MInt"
-                }
-        case "float", "float64":
-            mType = "MFloat"
-        case "bool":
-            mType = "MBool"
-        case "array", "slice":
-            mType = "MArray"
-        case "map":
-            mType = "MMap"
-        default:
-            fmt.Println("!! Error: No specific rules mapping matched: ", strings.ToLower(mFd.FieldType))
-    }
+	var mType string
+	switch strings.ToLower(mFd.FieldType) {
+	case "char", "string":
+		switch strings.ToLower(mFd.FieldSubType) {
+		case "numeric":
+			mType = "MCharNumeric"
+		case "alpha":
+			mType = "MCharAlpha"
+		case "alphanumeric":
+			mType = "MCharAlphaNumeric"
+		case "time":
+			mType = "MCharTime"
+		case "email":
+			mType = "MCharEmail"
+		case "ip":
+			mType = "MCharIp"
+		default:
+			mType = "MChar"
+		}
+	case "int":
+		switch strings.ToLower(mFd.FieldSubType) {
+		case "time":
+			mType = "MIntTime"
+		default:
+			mType = "MInt"
+		}
+	case "float", "float64":
+		mType = "MFloat"
+	case "bool":
+		mType = "MBool"
+	case "array", "slice":
+		mType = "MArray"
+	case "map":
+		mType = "MMap"
+	default:
+		fmt.Println("!! Error: No specific rules mapping matched: ", strings.ToLower(mFd.FieldType))
+	}
 
-    mFd.MutationType = mType
+	mFd.MutationType = mType
 }
-
 
 // fuzz - mutation
-func (mFd *MFieldDetails) CallMutationRules () {
-    // set mFd.MutationType
-    mFd.DetermineMutationType()
-    mType := mFd.MutationType
+func (mFd *MFieldDetails) CallMutationRules() {
+	// set mFd.MutationType
+	mFd.DetermineMutationType()
+	mType := mFd.MutationType
 
-    //
-    var mutatedValues []*MutatedValue
-    for _, ruleFunc := range MutationRulesMapping(mType) {
+	//
+	var mutatedValues []*MutatedValue
+	for _, ruleFunc := range MutationRulesMapping(mType) {
 
-        f := reflect.ValueOf(ruleFunc)
-        //
-        in := make([]reflect.Value, 3)
-        in[0] = reflect.ValueOf(mFd.CurrValue)
-        in[1] = reflect.ValueOf(mFd.FieldType)
-        in[2] = reflect.ValueOf(mFd.FieldSubType)
-        //
-        result := f.Call(in)
+		f := reflect.ValueOf(ruleFunc)
+		//
+		in := make([]reflect.Value, 3)
+		in[0] = reflect.ValueOf(mFd.CurrValue)
+		in[1] = reflect.ValueOf(mFd.FieldType)
+		in[2] = reflect.ValueOf(mFd.FieldSubType)
+		//
+		result := f.Call(in)
 
-        mutatedValue := MutatedValue {
-            MutationRule: runtime.FuncForPC(f.Pointer()).Name(),
-            MutatedValue: result[0].Interface(),
-        }
+		mutatedValue := MutatedValue{
+			MutationRule: runtime.FuncForPC(f.Pointer()).Name(),
+			MutatedValue: result[0].Interface(),
+		}
 
-        mutatedValues = append(mutatedValues, &mutatedValue)
-    }
+		mutatedValues = append(mutatedValues, &mutatedValue)
+	}
 
-    mFd.MutatedValues = mutatedValues
+	mFd.MutatedValues = mutatedValues
 }
 
-
-//----------------------------------------------
-//------- Common Rules ---------
-//----------------------------------------------
+// ----------------------------------------------
+// ------- Common Rules ---------
+// ----------------------------------------------
 // empty
-func M_Common_Set_To_Empty (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    mutatedValue := ""
-    return mutatedValue
+func M_Common_Set_To_Empty(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	mutatedValue := ""
+	return mutatedValue
 }
 
 // blank
-func M_Common_Set_To_One_Blank (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    mutatedValue := " "
-    return mutatedValue
+func M_Common_Set_To_One_Blank(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	mutatedValue := " "
+	return mutatedValue
 }
 
-func M_Common_Set_To_Null (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    var mutatedValue interface{}
-    mutatedValue = nilNull
+func M_Common_Set_To_Null(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	var mutatedValue interface{}
+	mutatedValue = nilNull
 
-    return mutatedValue
+	return mutatedValue
 }
 
 // set the [] to bool - true
-func M_Common_Set_To_Bool_True (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    var mutatedValue interface{}
-    mutatedValue = true
+func M_Common_Set_To_Bool_True(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	var mutatedValue interface{}
+	mutatedValue = true
 
-    return mutatedValue
+	return mutatedValue
 }
 
 // set the [] to bool - false
-func M_Common_Set_To_Bool_False (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    var mutatedValue interface{}
-    mutatedValue = false
+func M_Common_Set_To_Bool_False(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	var mutatedValue interface{}
+	mutatedValue = false
 
-    return mutatedValue
+	return mutatedValue
 }
 
 // set to !
-func M_Common_Set_To_Single_Exclamation_Sign (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    var mutatedValue interface{}
-    mutatedValue = `!`
+func M_Common_Set_To_Single_Exclamation_Sign(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	var mutatedValue interface{}
+	mutatedValue = `!`
 
-    return mutatedValue
+	return mutatedValue
 }
 
 // set to @
-func M_Common_Set_To_Single_At_Sign (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    var mutatedValue interface{}
-    mutatedValue = `@`
+func M_Common_Set_To_Single_At_Sign(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	var mutatedValue interface{}
+	mutatedValue = `@`
 
-    return mutatedValue
+	return mutatedValue
 }
 
 // set to #
-func M_Common_Set_To_Single_Number_Sign (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    var mutatedValue interface{}
-    mutatedValue = `#`
+func M_Common_Set_To_Single_Number_Sign(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	var mutatedValue interface{}
+	mutatedValue = `#`
 
-    return mutatedValue
+	return mutatedValue
 }
 
 // set to $
-func M_Common_Set_To_Single_Dollar_Sign (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    var mutatedValue interface{}
-    mutatedValue = `$`
+func M_Common_Set_To_Single_Dollar_Sign(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	var mutatedValue interface{}
+	mutatedValue = `$`
 
-    return mutatedValue
+	return mutatedValue
 }
 
 // set to %
-func M_Common_Set_To_Single_Percent_Sign (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    var mutatedValue interface{}
-    mutatedValue = `%`
+func M_Common_Set_To_Single_Percent_Sign(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	var mutatedValue interface{}
+	mutatedValue = `%`
 
-    return mutatedValue
+	return mutatedValue
 }
 
 // set to ^
-func M_Common_Set_To_Single_Caret_Sign (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    var mutatedValue interface{}
-    mutatedValue = `^`
+func M_Common_Set_To_Single_Caret_Sign(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	var mutatedValue interface{}
+	mutatedValue = `^`
 
-    return mutatedValue
+	return mutatedValue
 }
 
 // set to &
-func M_Common_Set_To_Single_Ampersand_Sign (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    var mutatedValue interface{}
-    mutatedValue = `&`
+func M_Common_Set_To_Single_Ampersand_Sign(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	var mutatedValue interface{}
+	mutatedValue = `&`
 
-    return mutatedValue
+	return mutatedValue
 }
 
 // set to *
-func M_Common_Set_To_Single_Asterisk_Sign (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    var mutatedValue interface{}
-    mutatedValue = `*`
+func M_Common_Set_To_Single_Asterisk_Sign(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	var mutatedValue interface{}
+	mutatedValue = `*`
 
-    return mutatedValue
+	return mutatedValue
 }
 
 // set to .
-func M_Common_Set_To_Single_Dot_Sign (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    var mutatedValue interface{}
-    mutatedValue = `.`
+func M_Common_Set_To_Single_Dot_Sign(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	var mutatedValue interface{}
+	mutatedValue = `.`
 
-    return mutatedValue
+	return mutatedValue
 }
 
 // set to +
-func M_Common_Set_To_Single_Plus_Sign (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    var mutatedValue interface{}
-    mutatedValue = `+`
+func M_Common_Set_To_Single_Plus_Sign(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	var mutatedValue interface{}
+	mutatedValue = `+`
 
-    return mutatedValue
+	return mutatedValue
 }
 
 // set to -
-func M_Common_Set_To_Single_Minus_Sign (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    var mutatedValue interface{}
-    mutatedValue = `-`
+func M_Common_Set_To_Single_Minus_Sign(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	var mutatedValue interface{}
+	mutatedValue = `-`
 
-    return mutatedValue
+	return mutatedValue
 }
 
 // set to e/E, this is for MCharNumeric, which can accept only Numeric, but `e, E, -, +` sign sometimes are negeative test
-func M_Common_Set_To_Single_e (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    var mutatedValue interface{}
-    mutatedValue = `e`
+func M_Common_Set_To_Single_e(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	var mutatedValue interface{}
+	mutatedValue = `e`
 
-    return mutatedValue
+	return mutatedValue
 }
 
 // set to e/E, this is for MCharNumeric, which can accept only Numeric, but `e, E, -, +` sign sometimes are negeative test
-func M_Common_Set_To_Single_E (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    var mutatedValue interface{}
-    mutatedValue = `E`
+func M_Common_Set_To_Single_E(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	var mutatedValue interface{}
+	mutatedValue = `E`
 
-    return mutatedValue
+	return mutatedValue
 }
 
-
-//----------------------------------------------
-//------- other Rules
-//----------------------------------------------
+// ----------------------------------------------
+// ------- other Rules
+// ----------------------------------------------
 // prefix blank
-func M_Char_Add_Prefix_One_Blank (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    mutatedValue := " " + fmt.Sprint(currValue)
-    return mutatedValue
+func M_Char_Add_Prefix_One_Blank(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	mutatedValue := " " + fmt.Sprint(currValue)
+	return mutatedValue
 }
 
-func M_Char_Replace_All_Blank (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    currValueRune := []rune(currValue.(string))
-    var mutatedValue string
+func M_Char_Replace_All_Blank(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	currValueRune := []rune(currValue.(string))
+	var mutatedValue string
 
-    for range currValueRune {
-        mutatedValue = mutatedValue + " "
-    }
-    return mutatedValue
+	for range currValueRune {
+		mutatedValue = mutatedValue + " "
+	}
+	return mutatedValue
 }
 
-func M_Char_Replace_Prefix_One_Blank (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    currValueRune := []rune(currValue.(string))
-    var mutatedValue string
+func M_Char_Replace_Prefix_One_Blank(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	currValueRune := []rune(currValue.(string))
+	var mutatedValue string
 
-    if len(currValueRune) > 1 {
-        mutatedValue = " " + string(currValueRune[1:])
-    }
-    return mutatedValue
+	if len(currValueRune) > 1 {
+		mutatedValue = " " + string(currValueRune[1:])
+	}
+	return mutatedValue
 }
 
-func M_Char_Replace_Prefix_None_ASCII (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    currValueRune := []rune(currValue.(string))
-    var mutatedValue string
+func M_Char_Replace_Prefix_None_ASCII(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	currValueRune := []rune(currValue.(string))
+	var mutatedValue string
 
-    if len(currValueRune) > 1 {
-        mutatedValue = `中` + string(currValueRune[1:])
-    }
-    return mutatedValue
+	if len(currValueRune) > 1 {
+		mutatedValue = `中` + string(currValueRune[1:])
+	}
+	return mutatedValue
 }
 
 // suffix blank
-func M_Char_Add_Suffix_One_Blank (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    mutatedValue := fmt.Sprint(currValue) + " "
-    return mutatedValue
+func M_Char_Add_Suffix_One_Blank(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	mutatedValue := fmt.Sprint(currValue) + " "
+	return mutatedValue
 }
 
-func M_Char_Replace_Suffix_One_Blank (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    currValueRune := []rune(currValue.(string))
-    var mutatedValue string
+func M_Char_Replace_Suffix_One_Blank(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	currValueRune := []rune(currValue.(string))
+	var mutatedValue string
 
-    if len(currValueRune) > 1 {
-        mutatedValue = string(currValueRune[0:len(currValueRune) - 1]) + " "
-    }
+	if len(currValueRune) > 1 {
+		mutatedValue = string(currValueRune[0:len(currValueRune)-1]) + " "
+	}
 
-    return mutatedValue
+	return mutatedValue
 }
 
 // mid blank
-func M_Char_Add_Mid_One_Blank (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    currValueRune := []rune(currValue.(string))
-    var mutatedValue string
+func M_Char_Add_Mid_One_Blank(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	currValueRune := []rune(currValue.(string))
+	var mutatedValue string
 
-    if len(currValueRune) >= 2 {
-        mutatedValue = string(currValueRune[0:1]) + " " + string(currValueRune[1:len(currValueRune)])
-    }
+	if len(currValueRune) >= 2 {
+		mutatedValue = string(currValueRune[0:1]) + " " + string(currValueRune[1:len(currValueRune)])
+	}
 
-    return mutatedValue
+	return mutatedValue
 }
 
 // mid none-ascii
-func M_Char_Add_Mid_None_ASCII (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    currValueRune := []rune(currValue.(string))
-    var mutatedValue string
+func M_Char_Add_Mid_None_ASCII(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	currValueRune := []rune(currValue.(string))
+	var mutatedValue string
 
-    if len(currValueRune) >= 2 {
-        mutatedValue = string(currValueRune[0:1]) + "中" + string(currValueRune[1:len(currValueRune)])
-    }
+	if len(currValueRune) >= 2 {
+		mutatedValue = string(currValueRune[0:1]) + "中" + string(currValueRune[1:len(currValueRune)])
+	}
 
-    return mutatedValue
+	return mutatedValue
 }
 
-func M_Char_Replace_Mid_One_Blank (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    currValueRune := []rune(currValue.(string))
-    var mutatedValue string
+func M_Char_Replace_Mid_One_Blank(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	currValueRune := []rune(currValue.(string))
+	var mutatedValue string
 
-    if len(currValueRune) > 2 {
-        mutatedValue = string(currValueRune[0:1]) + " " + string(currValueRune[2:len(currValueRune)])
-    }
+	if len(currValueRune) > 2 {
+		mutatedValue = string(currValueRune[0:1]) + " " + string(currValueRune[2:len(currValueRune)])
+	}
 
-    return mutatedValue
+	return mutatedValue
 }
 
-func M_Char_Replace_Mid_One_E (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    currValueRune := []rune(currValue.(string))
-    var mutatedValue string
+func M_Char_Replace_Mid_One_E(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	currValueRune := []rune(currValue.(string))
+	var mutatedValue string
 
-    if len(currValueRune) > 2 {
-        mutatedValue = string(currValueRune[0:1]) + "E" + string(currValueRune[2:len(currValueRune)])
-    }
+	if len(currValueRune) > 2 {
+		mutatedValue = string(currValueRune[0:1]) + "E" + string(currValueRune[2:len(currValueRune)])
+	}
 
-    return mutatedValue
+	return mutatedValue
 }
 
-func M_Char_Replace_Mid_One_Negative_Sign (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    currValueRune := []rune(currValue.(string))
-    var mutatedValue string
+func M_Char_Replace_Mid_One_Negative_Sign(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	currValueRune := []rune(currValue.(string))
+	var mutatedValue string
 
-    if len(currValueRune) > 2 {
-        mutatedValue = string(currValueRune[0:1]) + "-" + string(currValueRune[2:len(currValueRune)])
-    }
+	if len(currValueRune) > 2 {
+		mutatedValue = string(currValueRune[0:1]) + "-" + string(currValueRune[2:len(currValueRune)])
+	}
 
-    return mutatedValue
+	return mutatedValue
 }
 
-func M_Char_Replace_Mid_None_ASCII (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    currValueRune := []rune(currValue.(string))
-    var mutatedValue string
+func M_Char_Replace_Mid_None_ASCII(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	currValueRune := []rune(currValue.(string))
+	var mutatedValue string
 
-    if len(currValueRune) > 2 {
-        mutatedValue = string(currValueRune[0:1]) + "中" + string(currValueRune[2:len(currValueRune)])
-    }
+	if len(currValueRune) > 2 {
+		mutatedValue = string(currValueRune[0:1]) + "中" + string(currValueRune[2:len(currValueRune)])
+	}
 
-    return mutatedValue
+	return mutatedValue
 }
 
 // only one char
-func M_Char_Set_To_One_Char (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    currValueRune := []rune(currValue.(string))
-    var mutatedValue string
+func M_Char_Set_To_One_Char(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	currValueRune := []rune(currValue.(string))
+	var mutatedValue string
 
-    if len(currValueRune) > 0 {
-        mutatedValue = string(currValueRune[0])
-    }
+	if len(currValueRune) > 0 {
+		mutatedValue = string(currValueRune[0])
+	}
 
-    return mutatedValue
+	return mutatedValue
 }
 
 // longlong string
-func M_Char_Repeat_50_Times (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    mutatedValue := strings.Repeat(currValue.(string), 50)
+func M_Char_Repeat_50_Times(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	mutatedValue := strings.Repeat(currValue.(string), 50)
 
-    return mutatedValue
+	return mutatedValue
 }
 
 // special char(s) (~!@#$%^&*()_+{}[]<>?)
-func M_Char_Replace_Prefix_Percentage (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    currValueRune := []rune(currValue.(string))
-    var mutatedValue string
+func M_Char_Replace_Prefix_Percentage(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	currValueRune := []rune(currValue.(string))
+	var mutatedValue string
 
-    if len(currValueRune) > 1 {
-        mutatedValue = `%` + string(currValueRune[1:])
-    }
-    return mutatedValue
+	if len(currValueRune) > 1 {
+		mutatedValue = `%` + string(currValueRune[1:])
+	}
+	return mutatedValue
 }
 
-func M_Char_Replace_Prefix_Point (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    currValueRune := []rune(currValue.(string))
-    var mutatedValue string
+func M_Char_Replace_Prefix_Point(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	currValueRune := []rune(currValue.(string))
+	var mutatedValue string
 
-    if len(currValueRune) > 1 {
-        mutatedValue = `.` + string(currValueRune[1:])
-    }
-    return mutatedValue
+	if len(currValueRune) > 1 {
+		mutatedValue = `.` + string(currValueRune[1:])
+	}
+	return mutatedValue
 }
 
-func M_Char_Replace_Prefix_Caret (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    currValueRune := []rune(currValue.(string))
-    var mutatedValue string
+func M_Char_Replace_Prefix_Caret(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	currValueRune := []rune(currValue.(string))
+	var mutatedValue string
 
-    if len(currValueRune) > 1 {
-        mutatedValue = `^` + string(currValueRune[1:])
-    }
-    return mutatedValue
+	if len(currValueRune) > 1 {
+		mutatedValue = `^` + string(currValueRune[1:])
+	}
+	return mutatedValue
 }
 
-func M_Char_Replace_Prefix_Dollar (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    currValueRune := []rune(currValue.(string))
-    var mutatedValue string
+func M_Char_Replace_Prefix_Dollar(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	currValueRune := []rune(currValue.(string))
+	var mutatedValue string
 
-    if len(currValueRune) > 1 {
-        mutatedValue = `$` + string(currValueRune[1:])
-    }
-    return mutatedValue
+	if len(currValueRune) > 1 {
+		mutatedValue = `$` + string(currValueRune[1:])
+	}
+	return mutatedValue
 }
 
-func M_Char_Replace_Prefix_Star (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    currValueRune := []rune(currValue.(string))
-    var mutatedValue string
+func M_Char_Replace_Prefix_Star(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	currValueRune := []rune(currValue.(string))
+	var mutatedValue string
 
-    if len(currValueRune) > 1 {
-        mutatedValue = "*" + string(currValueRune[1:])
-    }
-    return mutatedValue
+	if len(currValueRune) > 1 {
+		mutatedValue = "*" + string(currValueRune[1:])
+	}
+	return mutatedValue
 }
-
 
 // change type (simple, i.e. to float64/bool...)
-func M_Char_Set_To_Int (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    mutatedValue := 123
+func M_Char_Set_To_Int(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	mutatedValue := 123
 
-    return mutatedValue
+	return mutatedValue
 }
 
-func M_Char_Set_To_Float (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    mutatedValue := 123.12
+func M_Char_Set_To_Float(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	mutatedValue := 123.12
 
-    return mutatedValue
+	return mutatedValue
 }
 
+// change type (complex, i.e. object, arrary)
+func M_Char_Set_To_Array(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	currValueRune := []rune(currValue.(string))
 
-//  change type (complex, i.e. object, arrary)
-func M_Char_Set_To_Array (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    currValueRune := []rune(currValue.(string))
+	var mutatedValue []string
 
-    var mutatedValue []string
+	if len(currValueRune) > 0 {
+		mutatedValue = []string{string(currValueRune[0])}
+	}
 
-    if len(currValueRune) > 0 {
-        mutatedValue = []string{string(currValueRune[0])}
-    }
-
-    return mutatedValue
+	return mutatedValue
 }
-
 
 // < --------------- Int ------------->
-func M_Int_Set_To_Zero (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    mutatedValue := 0
-    return mutatedValue
+func M_Int_Set_To_Zero(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	mutatedValue := 0
+	return mutatedValue
 }
 
-func M_Int_Set_To_One (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    mutatedValue := 1
-    return mutatedValue
+func M_Int_Set_To_One(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	mutatedValue := 1
+	return mutatedValue
 }
 
-func M_Int_Set_To_Negative_One (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    mutatedValue := -1
-    return mutatedValue
+func M_Int_Set_To_Negative_One(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	mutatedValue := -1
+	return mutatedValue
 }
 
-func M_Int_Set_To_MaxInt32 (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    mutatedValue := math.MaxInt32
-    return mutatedValue
+func M_Int_Set_To_MaxInt32(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	mutatedValue := math.MaxInt32
+	return mutatedValue
 }
 
-func M_Int_Set_To_MinInt32 (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    mutatedValue := math.MinInt32
-    return mutatedValue
+func M_Int_Set_To_MinInt32(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	mutatedValue := math.MinInt32
+	return mutatedValue
 }
 
-func M_Int_Set_To_MaxInt64 (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    mutatedValue := math.MaxInt64
-    return mutatedValue
+func M_Int_Set_To_MaxInt64(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	mutatedValue := math.MaxInt64
+	return mutatedValue
 }
 
-func M_Int_Set_To_MinInt64 (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    mutatedValue := math.MinInt64
-    return mutatedValue
+func M_Int_Set_To_MinInt64(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	mutatedValue := math.MinInt64
+	return mutatedValue
 }
-
 
 // < --------------- Float ------------->
-func M_Float_Set_To_E (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    mutatedValue := math.E
-    return mutatedValue
+func M_Float_Set_To_E(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	mutatedValue := math.E
+	return mutatedValue
 }
 
-func M_Float_Set_To_Postive_Float (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    mutatedValue := 1.1
-    return mutatedValue
+func M_Float_Set_To_Postive_Float(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	mutatedValue := 1.1
+	return mutatedValue
 }
 
-func M_Float_Set_To_Negative_Float (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    mutatedValue := -1.1
-    return mutatedValue
+func M_Float_Set_To_Negative_Float(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	mutatedValue := -1.1
+	return mutatedValue
 }
 
-func M_Float_Set_To_MaxFloat32 (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    mutatedValue := math.MaxFloat32
-    return mutatedValue
+func M_Float_Set_To_MaxFloat32(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	mutatedValue := math.MaxFloat32
+	return mutatedValue
 }
 
-func M_Float_Set_To_SmallestNonzeroFloat32 (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    mutatedValue := math.SmallestNonzeroFloat32
-    return mutatedValue
+func M_Float_Set_To_SmallestNonzeroFloat32(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	mutatedValue := math.SmallestNonzeroFloat32
+	return mutatedValue
 }
 
-func M_Float_Set_To_MaxFloat64 (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    mutatedValue := math.MaxFloat64
-    return mutatedValue
+func M_Float_Set_To_MaxFloat64(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	mutatedValue := math.MaxFloat64
+	return mutatedValue
 }
 
-func M_Float_Set_To_SmallestNonzeroFloat64 (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    mutatedValue := math.SmallestNonzeroFloat64
-    return mutatedValue
+func M_Float_Set_To_SmallestNonzeroFloat64(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	mutatedValue := math.SmallestNonzeroFloat64
+	return mutatedValue
 }
-
 
 // < --------------- Bool ------------->
-func M_Bool_Set_To_Zero (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    mutatedValue := 0
-    return mutatedValue
+func M_Bool_Set_To_Zero(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	mutatedValue := 0
+	return mutatedValue
 }
 
 // < --------------- Array ------------->
 // blank []
-func M_Array_Set_To_Empty_Array (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    var mutatedValue []interface{}
+func M_Array_Set_To_Empty_Array(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	var mutatedValue []interface{}
 
-    return mutatedValue
+	return mutatedValue
 }
 
 // remove one (random)
-func M_Array_Remove_One_Item_Random (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    var mutatedValue []interface{}
-    length := len(reflect.ValueOf(currValue).Interface().([]interface{}))
-    if length > 0 {
-        rand.Seed(time.Now().UnixNano())
-        randInt := rand.Intn(length)
+func M_Array_Remove_One_Item_Random(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	var mutatedValue []interface{}
+	length := len(reflect.ValueOf(currValue).Interface().([]interface{}))
+	if length > 0 {
+		rand.Seed(time.Now().UnixNano())
+		randInt := rand.Intn(length)
 
-        for i, v := range reflect.ValueOf(currValue).Interface().([]interface{}) {
-            if i != randInt {
-                mutatedValue = append(mutatedValue, v)
-            }
-        }
-    } else {
-        mutatedValue = append(mutatedValue, currValue)
-    }
-    return mutatedValue
+		for i, v := range reflect.ValueOf(currValue).Interface().([]interface{}) {
+			if i != randInt {
+				mutatedValue = append(mutatedValue, v)
+			}
+		}
+	} else {
+		mutatedValue = append(mutatedValue, currValue)
+	}
+	return mutatedValue
 }
 
 // just keep one item (random)
-func M_Array_Set_Only_One_Item (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    var mutatedValue []interface{}
-    length := len(reflect.ValueOf(currValue).Interface().([]interface{}))
-    if length > 0 {
-        rand.Seed(time.Now().UnixNano())
-        randInt := rand.Intn(length)
+func M_Array_Set_Only_One_Item(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	var mutatedValue []interface{}
+	length := len(reflect.ValueOf(currValue).Interface().([]interface{}))
+	if length > 0 {
+		rand.Seed(time.Now().UnixNano())
+		randInt := rand.Intn(length)
 
-        for i, v := range reflect.ValueOf(currValue).Interface().([]interface{}) {
-            if i == randInt {
-                mutatedValue = append(mutatedValue, v)
-                break
-            }
-        }
-    } else {
-        mutatedValue = append(mutatedValue, currValue)
-    }
-    return mutatedValue
+		for i, v := range reflect.ValueOf(currValue).Interface().([]interface{}) {
+			if i == randInt {
+				mutatedValue = append(mutatedValue, v)
+				break
+			}
+		}
+	} else {
+		mutatedValue = append(mutatedValue, currValue)
+	}
+	return mutatedValue
 }
 
 // repeat one item (random)
-func M_Array_Duplicate_One_Item_Random (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    var mutatedValue []interface{}
-    length := len(reflect.ValueOf(currValue).Interface().([]interface{}))
-    if length > 0 {
-        rand.Seed(time.Now().UnixNano())
-        randInt := rand.Intn(length)
+func M_Array_Duplicate_One_Item_Random(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	var mutatedValue []interface{}
+	length := len(reflect.ValueOf(currValue).Interface().([]interface{}))
+	if length > 0 {
+		rand.Seed(time.Now().UnixNano())
+		randInt := rand.Intn(length)
 
-        for i, v := range reflect.ValueOf(currValue).Interface().([]interface{}) {
-            if i == randInt {
-                mutatedValue = append(mutatedValue, v)
-            }
-            mutatedValue = append(mutatedValue, v)
-        }
-    }
-    return mutatedValue
+		for i, v := range reflect.ValueOf(currValue).Interface().([]interface{}) {
+			if i == randInt {
+				mutatedValue = append(mutatedValue, v)
+			}
+			mutatedValue = append(mutatedValue, v)
+		}
+	}
+	return mutatedValue
 }
 
 // append one but another type, if int, then append string item, vice verse
-func M_Array_Append_Another_Type_Item (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    var mutatedValue []interface{}
-    length := len(reflect.ValueOf(currValue).Interface().([]interface{}))
-    if length > 0 {
-        // currValueSlice := reflect.ValueOf(currValue).Interface().([]interface{})
-        for _, v := range reflect.ValueOf(currValue).Interface().([]interface{}) {
-            mutatedValue = append(mutatedValue, v)
-        }
- 
-        switch reflect.TypeOf(mutatedValue[0]).Kind() {
-            case reflect.Int:
-                mutatedValue = append(mutatedValue, "123")
-            case reflect.String:
-                mutatedValue = append(mutatedValue, 124)
-            default:
-                mutatedValue = append(mutatedValue, "125")
-        }
-    }
-    return mutatedValue
+func M_Array_Append_Another_Type_Item(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	var mutatedValue []interface{}
+	length := len(reflect.ValueOf(currValue).Interface().([]interface{}))
+	if length > 0 {
+		// currValueSlice := reflect.ValueOf(currValue).Interface().([]interface{})
+		for _, v := range reflect.ValueOf(currValue).Interface().([]interface{}) {
+			mutatedValue = append(mutatedValue, v)
+		}
+
+		switch reflect.TypeOf(mutatedValue[0]).Kind() {
+		case reflect.Int:
+			mutatedValue = append(mutatedValue, "123")
+		case reflect.String:
+			mutatedValue = append(mutatedValue, 124)
+		default:
+			mutatedValue = append(mutatedValue, "125")
+		}
+	}
+	return mutatedValue
 }
 
 // replace one (random) but another type, if int, then append string item, vice verse
-func M_Array_Replace_Another_Type_Item (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    var mutatedValue []interface{}
-    length := len(reflect.ValueOf(currValue).Interface().([]interface{}))
-    if length > 0 {
-        for _, v := range reflect.ValueOf(currValue).Interface().([]interface{}) {
-            mutatedValue = append(mutatedValue, v)
-        }
- 
-        rand.Seed(time.Now().UnixNano())
-        randInt := rand.Intn(length)
+func M_Array_Replace_Another_Type_Item(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	var mutatedValue []interface{}
+	length := len(reflect.ValueOf(currValue).Interface().([]interface{}))
+	if length > 0 {
+		for _, v := range reflect.ValueOf(currValue).Interface().([]interface{}) {
+			mutatedValue = append(mutatedValue, v)
+		}
 
-        switch reflect.TypeOf(mutatedValue[0]).Kind() {
-            case reflect.Int:
-                mutatedValue[randInt] = "123"
-            case reflect.String:
-                mutatedValue[randInt] = 124
-            default:
-                mutatedValue[randInt] = "125"
-        }
-    }
-    return mutatedValue
+		rand.Seed(time.Now().UnixNano())
+		randInt := rand.Intn(length)
+
+		switch reflect.TypeOf(mutatedValue[0]).Kind() {
+		case reflect.Int:
+			mutatedValue[randInt] = "123"
+		case reflect.String:
+			mutatedValue[randInt] = 124
+		default:
+			mutatedValue[randInt] = "125"
+		}
+	}
+	return mutatedValue
 }
 
 // replace one (random) to nil (i.e. json null)
-func M_Array_Replace_One_Item_Null (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    var mutatedValue []interface{}
-    length := len(reflect.ValueOf(currValue).Interface().([]interface{}))
-    if length > 0 {
-        for _, v := range reflect.ValueOf(currValue).Interface().([]interface{}) {
-            mutatedValue = append(mutatedValue, v)
-        }
- 
-        rand.Seed(time.Now().UnixNano())
-        randInt := rand.Intn(length)
+func M_Array_Replace_One_Item_Null(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	var mutatedValue []interface{}
+	length := len(reflect.ValueOf(currValue).Interface().([]interface{}))
+	if length > 0 {
+		for _, v := range reflect.ValueOf(currValue).Interface().([]interface{}) {
+			mutatedValue = append(mutatedValue, v)
+		}
 
-        mutatedValue[randInt] = nilNull
-    }
-    return mutatedValue
+		rand.Seed(time.Now().UnixNano())
+		randInt := rand.Intn(length)
+
+		mutatedValue[randInt] = nilNull
+	}
+	return mutatedValue
 }
 
 // replace one (random) to bool - true
-func M_Array_Replace_One_Item_Bool_True (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    var mutatedValue []interface{}
-    length := len(reflect.ValueOf(currValue).Interface().([]interface{}))
-    if length > 0 {
-        for _, v := range reflect.ValueOf(currValue).Interface().([]interface{}) {
-            mutatedValue = append(mutatedValue, v)
-        }
- 
-        rand.Seed(time.Now().UnixNano())
-        randInt := rand.Intn(length)
+func M_Array_Replace_One_Item_Bool_True(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	var mutatedValue []interface{}
+	length := len(reflect.ValueOf(currValue).Interface().([]interface{}))
+	if length > 0 {
+		for _, v := range reflect.ValueOf(currValue).Interface().([]interface{}) {
+			mutatedValue = append(mutatedValue, v)
+		}
 
-        mutatedValue[randInt] = true
-    }
-    return mutatedValue
+		rand.Seed(time.Now().UnixNano())
+		randInt := rand.Intn(length)
+
+		mutatedValue[randInt] = true
+	}
+	return mutatedValue
 }
 
 // replace one (random) to bool - false
-func M_Array_Replace_One_Item_Bool_False (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    var mutatedValue []interface{}
-    length := len(reflect.ValueOf(currValue).Interface().([]interface{}))
-    if length > 0 {
-        for _, v := range reflect.ValueOf(currValue).Interface().([]interface{}) {
-            mutatedValue = append(mutatedValue, v)
-        }
- 
-        rand.Seed(time.Now().UnixNano())
-        randInt := rand.Intn(length)
+func M_Array_Replace_One_Item_Bool_False(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	var mutatedValue []interface{}
+	length := len(reflect.ValueOf(currValue).Interface().([]interface{}))
+	if length > 0 {
+		for _, v := range reflect.ValueOf(currValue).Interface().([]interface{}) {
+			mutatedValue = append(mutatedValue, v)
+		}
 
-        mutatedValue[randInt] = false
-    }
-    return mutatedValue
+		rand.Seed(time.Now().UnixNano())
+		randInt := rand.Intn(length)
+
+		mutatedValue[randInt] = false
+	}
+	return mutatedValue
 }
 
 // set the [] has only item nil (i.e. json null)
-func M_Array_Set_To_Only_One_Null (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    var mutatedValue []interface{}
-    mutatedValue = append(mutatedValue, nilNull)
+func M_Array_Set_To_Only_One_Null(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	var mutatedValue []interface{}
+	mutatedValue = append(mutatedValue, nilNull)
 
-    return mutatedValue
+	return mutatedValue
 }
 
 // set the [] has only item int
-func M_Array_Set_To_Only_One_Int (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    var mutatedValue []interface{}
-    mutatedValue = append(mutatedValue, 123)
+func M_Array_Set_To_Only_One_Int(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	var mutatedValue []interface{}
+	mutatedValue = append(mutatedValue, 123)
 
-    return mutatedValue
+	return mutatedValue
 }
 
 // set the [] has only item string
-func M_Array_Set_To_Only_One_String (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    var mutatedValue []interface{}
-    mutatedValue = append(mutatedValue, "123")
+func M_Array_Set_To_Only_One_String(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	var mutatedValue []interface{}
+	mutatedValue = append(mutatedValue, "123")
 
-    return mutatedValue
+	return mutatedValue
 }
 
 // set the [] has only item bool - true
-func M_Array_Set_To_Only_One_Bool_True (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    var mutatedValue []interface{}
-    mutatedValue = append(mutatedValue, true)
+func M_Array_Set_To_Only_One_Bool_True(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	var mutatedValue []interface{}
+	mutatedValue = append(mutatedValue, true)
 
-    return mutatedValue
+	return mutatedValue
 }
 
 // set the [] has only item bool - false
-func M_Array_Set_To_Only_One_Bool_False (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    var mutatedValue []interface{}
-    mutatedValue = append(mutatedValue, false)
+func M_Array_Set_To_Only_One_Bool_False(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	var mutatedValue []interface{}
+	mutatedValue = append(mutatedValue, false)
 
-    return mutatedValue
+	return mutatedValue
 }
 
-
 // set the [] to int
-func M_Array_Set_To_Int (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    var mutatedValue interface{}
-    mutatedValue = 123
+func M_Array_Set_To_Int(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	var mutatedValue interface{}
+	mutatedValue = 123
 
-    return mutatedValue
+	return mutatedValue
 }
 
 // set the [] to string
-func M_Array_Set_To_String (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    var mutatedValue interface{}
-    mutatedValue = "123"
+func M_Array_Set_To_String(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	var mutatedValue interface{}
+	mutatedValue = "123"
 
-    return mutatedValue
+	return mutatedValue
 }
 
 // < --------------- Map ------------->
 // blank {}
-func M_Map_Set_To_Empty_Map (currValue interface{}, fieldType string, fieldSubType string) interface{} {
-    var mutatedValue = make(map[string]interface{})
+func M_Map_Set_To_Empty_Map(currValue interface{}, fieldType string, fieldSubType string) interface{} {
+	var mutatedValue = make(map[string]interface{})
 
-    return mutatedValue
+	return mutatedValue
 }
-

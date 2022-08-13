@@ -11,79 +11,77 @@
 package reports
 
 import (
- 	// "fmt"
- 	// "strconv"
- 	// "encoding/json"
+	// "fmt"
+	// "strconv"
+	// "encoding/json"
 
-	"go4api/lib/testcase"
+	"github.com/Aysnine/go4api/lib/testcase"
 
 	. "github.com/ahmetb/go-linq"
 )
 
-func (tcReportSlice TcReportSlice) SortByStartTime () TcReportSlice {
-    var orderedTcReportSlice TcReportSlice
-    From(tcReportSlice).
-        OrderByT(
-            func(item *testcase.TcReportResults) int64 { return item.StartTimeUnixNano },
-        ).
-        ToSlice(&orderedTcReportSlice)
+func (tcReportSlice TcReportSlice) SortByStartTime() TcReportSlice {
+	var orderedTcReportSlice TcReportSlice
+	From(tcReportSlice).
+		OrderByT(
+			func(item *testcase.TcReportResults) int64 { return item.StartTimeUnixNano },
+		).
+		ToSlice(&orderedTcReportSlice)
 
-    return orderedTcReportSlice
+	return orderedTcReportSlice
 }
 
-func (tcReportSlice TcReportSlice) SortByStartTimeDesc () TcReportSlice {
-    var orderedTcReportSlice TcReportSlice
-    From(tcReportSlice).
-        OrderByDescendingT(
-            func(item *testcase.TcReportResults) int64 { return item.StartTimeUnixNano },
-        ).
-        ToSlice(&orderedTcReportSlice)
+func (tcReportSlice TcReportSlice) SortByStartTimeDesc() TcReportSlice {
+	var orderedTcReportSlice TcReportSlice
+	From(tcReportSlice).
+		OrderByDescendingT(
+			func(item *testcase.TcReportResults) int64 { return item.StartTimeUnixNano },
+		).
+		ToSlice(&orderedTcReportSlice)
 
-    return orderedTcReportSlice
+	return orderedTcReportSlice
 }
 
+func (tcReportSlice TcReportSlice) SortByEndTime() TcReportSlice {
+	var orderedTcReportSlice TcReportSlice
+	From(tcReportSlice).
+		OrderByT(
+			func(item *testcase.TcReportResults) int64 { return item.EndTimeUnixNano },
+		).
+		ToSlice(&orderedTcReportSlice)
 
-func (tcReportSlice TcReportSlice) SortByEndTime () TcReportSlice {
-    var orderedTcReportSlice TcReportSlice
-    From(tcReportSlice).
-        OrderByT(
-            func(item *testcase.TcReportResults) int64 { return item.EndTimeUnixNano },
-        ).
-        ToSlice(&orderedTcReportSlice)
-
-    return orderedTcReportSlice
+	return orderedTcReportSlice
 }
 
-func (tcReportSlice TcReportSlice) SortByEndTimeDesc () TcReportSlice {
-    var orderedTcReportSlice TcReportSlice
-    From(tcReportSlice).
-        OrderByDescendingT(
-            func(item *testcase.TcReportResults) int64 { return item.EndTimeUnixNano },
-        ).
-        ToSlice(&orderedTcReportSlice)
+func (tcReportSlice TcReportSlice) SortByEndTimeDesc() TcReportSlice {
+	var orderedTcReportSlice TcReportSlice
+	From(tcReportSlice).
+		OrderByDescendingT(
+			func(item *testcase.TcReportResults) int64 { return item.EndTimeUnixNano },
+		).
+		ToSlice(&orderedTcReportSlice)
 
-    return orderedTcReportSlice
+	return orderedTcReportSlice
 }
 
+func (tcReportSlice TcReportSlice) SortByDuration() TcReportSlice {
+	var orderedTcReportSlice TcReportSlice
+	From(tcReportSlice).
+		OrderByT(
+			func(item *testcase.TcReportResults) int64 { return item.DurationUnixNano },
+		).
+		ToSlice(&orderedTcReportSlice)
 
-func (tcReportSlice TcReportSlice) SortByDuration () TcReportSlice {
-    var orderedTcReportSlice TcReportSlice
-    From(tcReportSlice).
-        OrderByT(
-            func(item *testcase.TcReportResults) int64 { return item.DurationUnixNano },
-        ).
-        ToSlice(&orderedTcReportSlice)
-
-    return orderedTcReportSlice
+	return orderedTcReportSlice
 }
 
-func (tcReportSlice TcReportSlice) SortByDurationDesc () TcReportSlice {
-    var orderedTcReportSlice TcReportSlice
-    From(tcReportSlice).
-        OrderByDescendingT(
-            func(item *testcase.TcReportResults) int64 { return item.DurationUnixNano },
-        ).
-        ToSlice(&orderedTcReportSlice)
+func (tcReportSlice TcReportSlice) SortByDurationDesc() TcReportSlice {
+	var orderedTcReportSlice TcReportSlice
+	From(tcReportSlice).
+		OrderByDescendingT(
+			func(item *testcase.TcReportResults) int64 { return item.DurationUnixNano },
+		).
+		ToSlice(&orderedTcReportSlice)
 
-    return orderedTcReportSlice
+	return orderedTcReportSlice
 }

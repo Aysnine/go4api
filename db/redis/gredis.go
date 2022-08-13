@@ -11,149 +11,146 @@
 package gredis
 
 import (
-    "fmt"
-    "strings"
+	"fmt"
+	"strings"
 
-    "go4api/cmd"
-    "go4api/utils"
+	"github.com/Aysnine/go4api/cmd"
+	"github.com/Aysnine/go4api/utils"
 
-    redigo "github.com/gomodule/redigo/redis"
+	redigo "github.com/gomodule/redigo/redis"
 )
 
 var RedisCons map[string]redigo.Conn
 
 type RedisExec struct {
-    TargetRedis string
-    CmdStr string
-    CmdKey string
-    CmdValue string
-    CmdAffectedCount int
-    CmdResults interface{}
+	TargetRedis      string
+	CmdStr           string
+	CmdKey           string
+	CmdValue         string
+	CmdAffectedCount int
+	CmdResults       interface{}
 }
 
-func InitRedisConnection () {
-    RedisCons = make(map[string]redigo.Conn)
+func InitRedisConnection() {
+	RedisCons = make(map[string]redigo.Conn)
 
-    reds := cmd.GetRedisConfig()
+	reds := cmd.GetRedisConfig()
 
-    for k, v := range reds {  
-        envMap := utils.GetOsEnviron()
-  
-        ip := renderValue(v.Ip, envMap)
-        port := renderValue(fmt.Sprint(v.Port), envMap)
-        password := renderValue(v.Password, envMap)
-        
-        // defaultRedisDb := os.Getenv("go4_qa_db_defaultRedisDb")
+	for k, v := range reds {
+		envMap := utils.GetOsEnviron()
 
-        c, err := redigo.Dial("tcp", ip + ":" + fmt.Sprint(port))
-        if err != nil {
-            panic(err)
-        }
+		ip := renderValue(v.Ip, envMap)
+		port := renderValue(fmt.Sprint(v.Port), envMap)
+		password := renderValue(v.Password, envMap)
 
-        // defer c.Close()
+		// defaultRedisDb := os.Getenv("go4_qa_db_defaultRedisDb")
 
-        if len(password) > 0 {
-            if _, err = c.Do("AUTH", password); err != nil {  
-                c.Close()  
-                panic(err)
-            }
-        }
+		c, err := redigo.Dial("tcp", ip+":"+fmt.Sprint(port))
+		if err != nil {
+			panic(err)
+		}
 
-        _, err = c.Do("PING")  
-        if err != nil {
-            panic(err)
-        }
+		// defer c.Close()
 
-        key := strings.ToLower(k)
-        RedisCons[key] = c
-    }
-} 
+		if len(password) > 0 {
+			if _, err = c.Do("AUTH", password); err != nil {
+				c.Close()
+				panic(err)
+			}
+		}
 
-func Run (cmdStr string, cmdKey string, cmdValue string) (int, interface{}, string) {
-    var err error
-    redExecStatus := ""
-    
-    tDb := "master"
-    redisExec := &RedisExec{tDb, cmdStr, cmdKey, cmdValue, 0, ""}
-    err = redisExec.Do()
+		_, err = c.Do("PING")
+		if err != nil {
+			panic(err)
+		}
 
-    if err == nil {
-        redExecStatus = "cmdSuccess"
-    } else {
-        redExecStatus = "cmdFailed"
-    }
-
-    return redisExec.CmdAffectedCount, redisExec.CmdResults, redExecStatus
+		key := strings.ToLower(k)
+		RedisCons[key] = c
+	}
 }
 
-func (redisExec *RedisExec) Do () error {
-    c := RedisCons[redisExec.TargetRedis]
+func Run(cmdStr string, cmdKey string, cmdValue string) (int, interface{}, string) {
+	var err error
+	redExecStatus := ""
 
-    var err error
-    var res interface{}
+	tDb := "master"
+	redisExec := &RedisExec{tDb, cmdStr, cmdKey, cmdValue, 0, ""}
+	err = redisExec.Do()
 
-    // to support del, set, get first
-    switch strings.ToUpper(redisExec.CmdStr) {
-        case "SET":
-            res, err = c.Do(redisExec.CmdStr, redisExec.CmdKey, redisExec.CmdValue) 
-            if err == nil {
-                r, _ := redigo.String(res, nil)
+	if err == nil {
+		redExecStatus = "cmdSuccess"
+	} else {
+		redExecStatus = "cmdFailed"
+	}
 
-                redisExec.CmdAffectedCount = 1
-                redisExec.CmdResults = r
-            }
-        case "GET":
-            res, err = c.Do(redisExec.CmdStr, redisExec.CmdKey) 
-            if err == nil {
-                r, _ := redigo.String(res, nil)
-
-                redisExec.CmdAffectedCount = 1
-                redisExec.CmdResults = r
-            }
-        case "DEL":
-            res, err = c.Do(redisExec.CmdStr, redisExec.CmdKey) 
-            if err == nil {
-                r, _ := redigo.Int(res, nil)
-
-                redisExec.CmdAffectedCount = 1
-                redisExec.CmdResults = r
-            }
-        case "EXISTS":
-            res, err = c.Do(redisExec.CmdStr, redisExec.CmdKey) 
-            if err == nil {
-                r, _ := redigo.Int(res, nil)
-
-                redisExec.CmdAffectedCount = 1
-                redisExec.CmdResults = r
-            }
-        case "KEYS":
-            res, err = c.Do(redisExec.CmdStr, redisExec.CmdKey) 
-            if err == nil {
-                r, _ := redigo.Strings(res, nil)
-    
-                redisExec.CmdAffectedCount = 1
-                redisExec.CmdResults = r
-            }
-        default:
-            redisExec.CmdAffectedCount = -1
-            fmt.Println("!! Warning, Command ", redisExec.CmdStr, " is not supported currently, will enhance it later")
-    }
-
-    return err
+	return redisExec.CmdAffectedCount, redisExec.CmdResults, redExecStatus
 }
 
+func (redisExec *RedisExec) Do() error {
+	c := RedisCons[redisExec.TargetRedis]
 
-func renderValue (jsonStr string, feeder map[string]string) string {
-    s := jsonStr
-    
-    for key, value := range feeder {
-        k := "${" + key + "}"
-        if k == s {
-            s = strings.Replace(s, k, value, -1)
-        }
-    }
+	var err error
+	var res interface{}
 
-    return s
+	// to support del, set, get first
+	switch strings.ToUpper(redisExec.CmdStr) {
+	case "SET":
+		res, err = c.Do(redisExec.CmdStr, redisExec.CmdKey, redisExec.CmdValue)
+		if err == nil {
+			r, _ := redigo.String(res, nil)
+
+			redisExec.CmdAffectedCount = 1
+			redisExec.CmdResults = r
+		}
+	case "GET":
+		res, err = c.Do(redisExec.CmdStr, redisExec.CmdKey)
+		if err == nil {
+			r, _ := redigo.String(res, nil)
+
+			redisExec.CmdAffectedCount = 1
+			redisExec.CmdResults = r
+		}
+	case "DEL":
+		res, err = c.Do(redisExec.CmdStr, redisExec.CmdKey)
+		if err == nil {
+			r, _ := redigo.Int(res, nil)
+
+			redisExec.CmdAffectedCount = 1
+			redisExec.CmdResults = r
+		}
+	case "EXISTS":
+		res, err = c.Do(redisExec.CmdStr, redisExec.CmdKey)
+		if err == nil {
+			r, _ := redigo.Int(res, nil)
+
+			redisExec.CmdAffectedCount = 1
+			redisExec.CmdResults = r
+		}
+	case "KEYS":
+		res, err = c.Do(redisExec.CmdStr, redisExec.CmdKey)
+		if err == nil {
+			r, _ := redigo.Strings(res, nil)
+
+			redisExec.CmdAffectedCount = 1
+			redisExec.CmdResults = r
+		}
+	default:
+		redisExec.CmdAffectedCount = -1
+		fmt.Println("!! Warning, Command ", redisExec.CmdStr, " is not supported currently, will enhance it later")
+	}
+
+	return err
 }
 
+func renderValue(jsonStr string, feeder map[string]string) string {
+	s := jsonStr
 
+	for key, value := range feeder {
+		k := "${" + key + "}"
+		if k == s {
+			s = strings.Replace(s, k, value, -1)
+		}
+	}
+
+	return s
+}

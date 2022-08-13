@@ -11,86 +11,86 @@
 package gjs
 
 import (
-    "fmt"
-    // "os"
-    "strings"
-    "path/filepath"
+	"fmt"
+	// "os"
+	"path/filepath"
+	"strings"
 
-    // "go4api/cmd"
-    "go4api/utils"
+	// "github.com/Aysnine/go4api/cmd"
+	"github.com/Aysnine/go4api/utils"
 
-    goja "github.com/dop251/goja"
+	goja "github.com/dop251/goja"
 )
 
 var JsFunctions []GJsBasics
 
 // trial code for js
-func InitJsFunctions (jsFileList []string) {
-    for i, _ := range jsFileList {
-        srcBytes := utils.GetContentFromFile(jsFileList[i])
-        src := string(srcBytes)
+func InitJsFunctions(jsFileList []string) {
+	for i, _ := range jsFileList {
+		srcBytes := utils.GetContentFromFile(jsFileList[i])
+		src := string(srcBytes)
 
-        p, err := goja.Compile("", src, false)
-        if err != nil {
-            panic(err)
-        }
+		p, err := goja.Compile("", src, false)
+		if err != nil {
+			panic(err)
+		}
 
-        jsFileName := strings.TrimSuffix(filepath.Base(jsFileList[i]), ".js")
+		jsFileName := strings.TrimSuffix(filepath.Base(jsFileList[i]), ".js")
 
-        jsFunc := GJsBasics {
-            JsSourceFilePath: jsFileList[i],
-            JsSourceFileName: filepath.Base(jsFileList[i]),
-            JsFunctionName: jsFileName,
-            JsProgram: p,
-        }
+		jsFunc := GJsBasics{
+			JsSourceFilePath: jsFileList[i],
+			JsSourceFileName: filepath.Base(jsFileList[i]),
+			JsFunctionName:   jsFileName,
+			JsProgram:        p,
+		}
 
-        JsFunctions = append(JsFunctions, jsFunc)
-    }   
+		JsFunctions = append(JsFunctions, jsFunc)
+	}
 }
 
 // for testing
-func CallJsFuncs (funcName string, funcParams interface{}) interface{} {
-    // fmt.Println(JsFunctions)
-    for ii, _ := range JsFunctions {
-        for i := 1; i < 10; i++ {
-            go RunProgram(JsFunctions[ii].JsProgram, funcParams)
-        }
-    } 
+func CallJsFuncs(funcName string, funcParams interface{}) interface{} {
+	// fmt.Println(JsFunctions)
+	for ii, _ := range JsFunctions {
+		for i := 1; i < 10; i++ {
+			go RunProgram(JsFunctions[ii].JsProgram, funcParams)
+		}
+	}
 
-    return 1
+	return 1
 }
 
 // for testing
-func CallJsFunc (funcName string, funcParams interface{}) interface{} {
-    // fmt.Println(JsFunctions)
-    idx := -1
-    var returnValue interface{}
+func CallJsFunc(funcName string, funcParams interface{}) interface{} {
+	// fmt.Println(JsFunctions)
+	idx := -1
+	var returnValue interface{}
 
-    for i, _ := range JsFunctions {
-        if JsFunctions[i].JsFunctionName == funcName {
-            idx = i
-            break
-        }
-    } 
+	for i, _ := range JsFunctions {
+		if JsFunctions[i].JsFunctionName == funcName {
+			idx = i
+			break
+		}
+	}
 
-    if idx != -1 {
-        returnValue = RunProgram(JsFunctions[idx].JsProgram, funcParams)
-    } else {
-        fmt.Println("! Error, no js function found")
-    }
+	if idx != -1 {
+		returnValue = RunProgram(JsFunctions[idx].JsProgram, funcParams)
+	} else {
+		fmt.Println("! Error, no js function found")
+	}
 
-    return returnValue
+	return returnValue
 }
 
 func RunProgram(p *goja.Program, funcParams interface{}) interface{} {
-    vm := goja.New()
+	vm := goja.New()
 
-    vm.Set("funcParams", funcParams)
-    v, err := vm.RunProgram(p)
+	vm.Set("funcParams", funcParams)
+	v, err := vm.RunProgram(p)
 
-    if err != nil {
-        panic(err)
-    }
+	if err != nil {
+		panic(err)
+	}
 
-    return v.Export()
+	return v.Export()
 }

@@ -11,24 +11,24 @@
 package extension
 
 import (
-    // "fmt"
-    "strings"
+	// "fmt"
+	"strings"
 
-    "go4api/cmd"
-    "go4api/lib/testcase"
-    "go4api/lib/extension/keyword"
+	"github.com/Aysnine/go4api/cmd"
+	"github.com/Aysnine/go4api/lib/extension/keyword"
+	"github.com/Aysnine/go4api/lib/testcase"
 )
 
-func GetKwFilePaths () []string {
-    filePathSlice := strings.Split(cmd.Opt.KeyWord, ",")
+func GetKwFilePaths() []string {
+	filePathSlice := strings.Split(cmd.Opt.KeyWord, ",")
 
-    return filePathSlice
+	return filePathSlice
 }
 
-func InitFullKwTcSlice (filePaths []string) ([]*testcase.TestCaseDataInfo, []string) {
-    // filePathSlice := GetTsFilePaths()
+func InitFullKwTcSlice(filePaths []string) ([]*testcase.TestCaseDataInfo, []string) {
+	// filePathSlice := GetTsFilePaths()
 
-    fullKwTcSlice, fullKwJsSlice := keyword.InitFullKwTcSlice(filePaths)
+	fullKwTcSlice, fullKwJsSlice := keyword.InitFullKwTcSlice(filePaths)
 
-    return fullKwTcSlice, fullKwJsSlice
+	return fullKwTcSlice, fullKwJsSlice
 }

@@ -11,12 +11,12 @@
 package testsuite
 
 import (
-    // "fmt"
+	// "fmt"
 
-    gsession "go4api/lib/session"
+	gsession "github.com/Aysnine/go4api/lib/session"
 )
 
 // set the session info for test suite
-func (ts *TestSuite) WriteSession () {
-    gsession.WriteTcSession(ts.TsName(), (*ts)[ts.TsName()].Parameters)
+func (ts *TestSuite) WriteSession() {
+	gsession.WriteTcSession(ts.TsName(), (*ts)[ts.TsName()].Parameters)
 }

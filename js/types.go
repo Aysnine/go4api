@@ -11,23 +11,21 @@
 package gjs
 
 import (
-    // "fmt"
-    // "os"
-    // "strings"
+	// "fmt"
+	// "os"
+	// "strings"
 
-    // "go4api/cmd"
+	// "github.com/Aysnine/go4api/cmd"
 
-    goja "github.com/dop251/goja"
+	goja "github.com/dop251/goja"
 )
-
 
 // mvp, one js file has only one function
 type GJsBasics struct {
-    JsSourceFilePath string
-    JsSourceFileName string
-    JsFunctionName string
-    JsFunctionInParams interface{}
-    JsFunctionOut interface{}
-    JsProgram *goja.Program
+	JsSourceFilePath   string
+	JsSourceFileName   string
+	JsFunctionName     string
+	JsFunctionInParams interface{}
+	JsFunctionOut      interface{}
+	JsProgram          *goja.Program
 }
-

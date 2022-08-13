@@ -11,24 +11,24 @@
 package extension
 
 import (
-    // "fmt"
-    "strings"
+	// "fmt"
+	"strings"
 
-    "go4api/cmd"
-    "go4api/lib/testcase"
-    "go4api/lib/extension/statechart"
+	"github.com/Aysnine/go4api/cmd"
+	"github.com/Aysnine/go4api/lib/extension/statechart"
+	"github.com/Aysnine/go4api/lib/testcase"
 )
 
-func GetScFilePaths () []string {
-    filePathSlice := strings.Split(cmd.Opt.StateChart, ",")
+func GetScFilePaths() []string {
+	filePathSlice := strings.Split(cmd.Opt.StateChart, ",")
 
-    return filePathSlice
+	return filePathSlice
 }
 
-func InitFullScTcSlice (filePaths []string) ([]*testcase.TestCaseDataInfo) {
-    // filePathSlice := GetTsFilePaths()
+func InitFullScTcSlice(filePaths []string) []*testcase.TestCaseDataInfo {
+	// filePathSlice := GetTsFilePaths()
 
-    fullKwTcSlice := statechart.InitFullScTcSlice(filePaths)
+	fullKwTcSlice := statechart.InitFullScTcSlice(filePaths)
 
-    return fullKwTcSlice
+	return fullKwTcSlice
 }
