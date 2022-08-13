@@ -165,6 +165,8 @@ func usage() {
 -----
 go4api version: 0.65.0
 
+forked: github.com/Aysnine/go4api
+
 -----
 Usage:
   go4api [command] [options]
