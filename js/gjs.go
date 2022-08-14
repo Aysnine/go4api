@@ -19,7 +19,8 @@ import (
 	// "github.com/Aysnine/go4api/cmd"
 	"github.com/Aysnine/go4api/utils"
 
-	goja "github.com/dop251/goja"
+	"github.com/dop251/goja"
+	"github.com/dop251/goja_nodejs/require"
 )
 
 var JsFunctions []GJsBasics
@@ -83,9 +84,14 @@ func CallJsFunc(funcName string, funcParams interface{}) interface{} {
 }
 
 func RunProgram(p *goja.Program, funcParams interface{}) interface{} {
+
 	vm := goja.New()
 
+	registry := new(require.Registry) // this can be shared by multiple runtimes
+	registry.Enable(vm)
+
 	vm.Set("funcParams", funcParams)
+
 	v, err := vm.RunProgram(p)
 
 	if err != nil {
