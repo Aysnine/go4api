@@ -70,9 +70,9 @@ var Graphic = `<!DOCTYPE html>
 
                                   var parsed = null
                                   if (tcResults[index]) {
-                                    if (tcResults[index].actualBody) {
+                                    if (tcResults[index].ActualBody) {
                                       try {
-                                        parsed = JSON.parse(tcResults[index].actualBody)
+                                        parsed = JSON.parse(tcResults[index].ActualBody)
                                       } catch(error) {
                                         // ...
                                       }
@@ -80,7 +80,7 @@ var Graphic = `<!DOCTYPE html>
                                   }
 
                                   if (parsed) {
-                                    tcResults[index].actualBody = parsed
+                                    tcResults[index].ActualBody = parsed
                                   }
 
                                   var strJons = JSON.stringify(tcResults[index], null, 4)
