@@ -67,6 +67,22 @@ var Graphic = `<!DOCTYPE html>
                               for (var key in circles)
                               {
                                   var index = indexOfResults(key)
+
+                                  var parsed = null
+                                  if (tcResults[index]) {
+                                    if (tcResults[index].actualBody) {
+                                      try {
+                                        parsed = JSON.parse(tcResults[index].actualBody)
+                                      } catch(error) {
+                                        // ...
+                                      }
+                                    }
+                                  }
+
+                                  if (parsed) {
+                                    tcResults[index].actualBody = parsed
+                                  }
+
                                   var strJons = JSON.stringify(tcResults[index], null, 4)
 
                                   var c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
