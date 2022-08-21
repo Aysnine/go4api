@@ -277,7 +277,9 @@ func (tcDataStore *TcDataStore) RenderExpresionB(source interface{}) interface{}
 
 			var vStr = ""
 			if value != nil {
-				switch reflect.TypeOf(value).Kind().String() {
+				typeName := reflect.TypeOf(value).Kind().String()
+				fmt.Println("xxxxxxxxx", key, typeName)
+				switch typeName {
 				case "float64":
 					vStr = utils.FloatToString(value.(float64))
 				case "string":
