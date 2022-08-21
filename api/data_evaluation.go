@@ -75,6 +75,7 @@ func (tcDataStore *TcDataStore) RenderTcVariables(path string, res interface{}) 
 	var resTcData testcase.TestCaseDataInfo
 
 	dataFeeder := tcDataStore.MergeTestData()
+	fmt.Println(">>>>>>>>>>> MT >>>>>>>>>>>>>>", "A")
 
 	tcDataJsonBytes, _ := json.Marshal(tcDataStore.TcData)
 	tcDataJson := string(tcDataJsonBytes)
@@ -136,6 +137,7 @@ func (tcDataStore *TcDataStore) RenderTcVariables(path string, res interface{}) 
 // trial
 func (tcDataStore *TcDataStore) GetRenderTcVariables(res string) string {
 	dataFeeder := tcDataStore.MergeTestData()
+	fmt.Println(">>>>>>>>>>> MT >>>>>>>>>>>>>>", "B")
 
 	// jsonBytes, _ := json.Marshal(res)
 	// jsonStr := string(jsonBytes)
@@ -208,6 +210,7 @@ func (tcDataStore *TcDataStore) RenderExpresionA(source interface{}) string {
 	var lastestExp string
 
 	dataFeeder := tcDataStore.MergeTestData()
+	fmt.Println(">>>>>>>>>>> MT >>>>>>>>>>>>>>", "C")
 	jsonStr := source.(string)
 
 	n := strings.Count(jsonStr, "${")
@@ -264,6 +267,7 @@ func (tcDataStore *TcDataStore) RenderExpresionB(source interface{}) interface{}
 	var finalExp interface{}
 
 	dataFeeder := tcDataStore.MergeTestData()
+	fmt.Println(">>>>>>>>>>> MT >>>>>>>>>>>>>>", "D")
 
 	// jsonBytes, _ := json.Marshal(source)
 	jsonStr := source.(string)
