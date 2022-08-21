@@ -75,7 +75,6 @@ func (tcDataStore *TcDataStore) RenderTcVariables(path string, res interface{}) 
 	var resTcData testcase.TestCaseDataInfo
 
 	dataFeeder := tcDataStore.MergeTestData()
-	fmt.Println(">>>>>>>>>>> MT >>>>>>>>>>>>>>", "A")
 
 	tcDataJsonBytes, _ := json.Marshal(tcDataStore.TcData)
 	tcDataJson := string(tcDataJsonBytes)
@@ -84,7 +83,6 @@ func (tcDataStore *TcDataStore) RenderTcVariables(path string, res interface{}) 
 
 	n := strings.Count(jsonStr, "${")
 	if n > 0 {
-		fmt.Println(">>>>>>>>>>> has var >>>>>>>>>>>>>>")
 		// as the dataFedder is map, its sequence can not be guaranteed
 		// so, replace the ${} from right to left
 		for i := 0; i < n; i++ {
@@ -96,12 +94,9 @@ func (tcDataStore *TcDataStore) RenderTcVariables(path string, res interface{}) 
 			key := sR[0:idx2]
 			value := dataFeeder[key]
 
-			fmt.Println("Key", key)
-
 			var vStr = ""
 			if value != nil {
 				typeName := reflect.TypeOf(value).Kind().String()
-				fmt.Println("A", typeName, key)
 				switch typeName {
 				case "float64":
 					vStr = utils.FloatToString(value.(float64))
@@ -112,6 +107,12 @@ func (tcDataStore *TcDataStore) RenderTcVariables(path string, res interface{}) 
 					// for example:
 					// valueB, _ := json.Marshal(value)
 					// vStr = "`" + string(valueB) + "`"
+					vStr = fmt.Sprint(value)
+				case "map":
+
+					ss, _ := json.Marshal(value)
+					fmt.Println("map: ", string(ss))
+
 					vStr = fmt.Sprint(value)
 				default:
 					vStr = fmt.Sprint(value)
@@ -140,7 +141,6 @@ func (tcDataStore *TcDataStore) RenderTcVariables(path string, res interface{}) 
 // trial
 func (tcDataStore *TcDataStore) GetRenderTcVariables(res string) string {
 	dataFeeder := tcDataStore.MergeTestData()
-	fmt.Println(">>>>>>>>>>> MT >>>>>>>>>>>>>>", "B")
 
 	// jsonBytes, _ := json.Marshal(res)
 	// jsonStr := string(jsonBytes)
@@ -163,7 +163,6 @@ func (tcDataStore *TcDataStore) GetRenderTcVariables(res string) string {
 			var vStr = ""
 			if value != nil {
 				typeName := reflect.TypeOf(value).Kind().String()
-				fmt.Println("B", typeName, key)
 				switch typeName {
 				case "float64":
 					vStr = utils.FloatToString(value.(float64))
@@ -213,7 +212,6 @@ func (tcDataStore *TcDataStore) RenderExpresionA(source interface{}) string {
 	var lastestExp string
 
 	dataFeeder := tcDataStore.MergeTestData()
-	fmt.Println(">>>>>>>>>>> MT >>>>>>>>>>>>>>", "C")
 	jsonStr := source.(string)
 
 	n := strings.Count(jsonStr, "${")
@@ -239,7 +237,6 @@ func (tcDataStore *TcDataStore) RenderExpresionA(source interface{}) string {
 			var vStr = ""
 			if value != nil {
 				typeName := reflect.TypeOf(value).Kind().String()
-				fmt.Println("C", typeName, key)
 				switch typeName {
 				case "float64":
 					vStr = utils.FloatToString(value.(float64))
@@ -256,7 +253,6 @@ func (tcDataStore *TcDataStore) RenderExpresionA(source interface{}) string {
 				}
 			}
 
-			fmt.Println("vStr: ", vStr)
 			jsonStr = strings.Replace(jsonStr, "${"+key+"}", vStr, -1)
 		}
 	} else {
@@ -270,7 +266,6 @@ func (tcDataStore *TcDataStore) RenderExpresionB(source interface{}) interface{}
 	var finalExp interface{}
 
 	dataFeeder := tcDataStore.MergeTestData()
-	fmt.Println(">>>>>>>>>>> MT >>>>>>>>>>>>>>", "D")
 
 	// jsonBytes, _ := json.Marshal(source)
 	jsonStr := source.(string)
@@ -291,7 +286,6 @@ func (tcDataStore *TcDataStore) RenderExpresionB(source interface{}) interface{}
 			var vStr = ""
 			if value != nil {
 				typeName := reflect.TypeOf(value).Kind().String()
-				fmt.Println("D", typeName, key)
 				switch typeName {
 				case "float64":
 					vStr = utils.FloatToString(value.(float64))
