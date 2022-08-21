@@ -72,10 +72,18 @@ func (tcDataStore *TcDataStore) MergeTestData() map[string]interface{} {
 		finalMap[k] = v
 	}
 
-	var responseBody interface{}
+	// var responseBody interface{}
+	// json.Unmarshal(tcDataStore.HttpActualBody, &responseBody)
+
+	// finalMap["body"] = responseBody
+
+	var responseBody = make(map[string]interface{})
 	json.Unmarshal(tcDataStore.HttpActualBody, &responseBody)
 
 	finalMap["body"] = responseBody
+
+	// ss, _ := json.Marshal(finalMap)
+	// fmt.Println("TcData: ", string(ss))
 
 	return finalMap
 }
