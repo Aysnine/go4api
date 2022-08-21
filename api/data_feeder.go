@@ -17,7 +17,6 @@ import (
 	// "encoding/json"
 
 	"encoding/json"
-	"fmt"
 
 	"github.com/Aysnine/go4api/cmd"
 	gsession "github.com/Aysnine/go4api/lib/session"
@@ -73,13 +72,10 @@ func (tcDataStore *TcDataStore) MergeTestData() map[string]interface{} {
 		finalMap[k] = v
 	}
 
-	var responseBody = make(map[string]interface{})
+	var responseBody interface{}
 	json.Unmarshal(tcDataStore.HttpActualBody, &responseBody)
 
 	finalMap["body"] = responseBody
-
-	ss, _ := json.Marshal(finalMap)
-	fmt.Println("TcData: ", string(ss))
 
 	return finalMap
 }
