@@ -84,6 +84,7 @@ func (tcDataStore *TcDataStore) RenderTcVariables(path string, res interface{}) 
 
 	n := strings.Count(jsonStr, "${")
 	if n > 0 {
+		fmt.Println(">>>>>>>>>>> has var >>>>>>>>>>>>>>")
 		// as the dataFedder is map, its sequence can not be guaranteed
 		// so, replace the ${} from right to left
 		for i := 0; i < n; i++ {
@@ -94,6 +95,8 @@ func (tcDataStore *TcDataStore) RenderTcVariables(path string, res interface{}) 
 
 			key := sR[0:idx2]
 			value := dataFeeder[key]
+
+			fmt.Println("Key", key)
 
 			var vStr = ""
 			if value != nil {
