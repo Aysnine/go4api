@@ -16,6 +16,9 @@ import (
 	// "strings"
 	// "encoding/json"
 
+	"encoding/json"
+	"fmt"
+
 	"github.com/Aysnine/go4api/cmd"
 	gsession "github.com/Aysnine/go4api/lib/session"
 	"github.com/Aysnine/go4api/utils"
@@ -70,12 +73,14 @@ func (tcDataStore *TcDataStore) MergeTestData() map[string]interface{} {
 		finalMap[k] = v
 	}
 
-	// fmt.Println("")
-	// fmt.Println("---> finalMap: ", finalMap)
+	var responseBody = make(map[string]interface{})
+	json.Unmarshal(tcDataStore.HttpActualBody, &responseBody)
 
-	// var ff interface{}
-	// ss, _ :=  json.Marshal(tcDataStore.TcLocalVariables)
-	// fmt.Println("TcLocalVariables: ", string(ss))
+	finalMap["body"] = responseBody
+
+	ss, _ := json.Marshal(finalMap)
+	fmt.Println("TcData: ", string(ss))
+
 	return finalMap
 }
 
