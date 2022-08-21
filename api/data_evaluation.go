@@ -94,6 +94,8 @@ func (tcDataStore *TcDataStore) RenderTcVariables(path string, res interface{}) 
 			key := sR[0:idx2]
 			value := dataFeeder[key]
 
+			fmt.Println(">>>>>>>> key", reflect.TypeOf(value).Kind().String(), key, value)
+
 			var vStr = ""
 			if value != nil {
 				typeName := reflect.TypeOf(value).Kind().String()
@@ -107,12 +109,6 @@ func (tcDataStore *TcDataStore) RenderTcVariables(path string, res interface{}) 
 					// for example:
 					// valueB, _ := json.Marshal(value)
 					// vStr = "`" + string(valueB) + "`"
-					vStr = fmt.Sprint(value)
-				case "map":
-
-					ss, _ := json.Marshal(value)
-					fmt.Println("map: ", string(ss))
-
 					vStr = fmt.Sprint(value)
 				default:
 					vStr = fmt.Sprint(value)
