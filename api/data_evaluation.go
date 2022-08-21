@@ -110,7 +110,7 @@ func (tcDataStore *TcDataStore) RenderTcVariables(path string, res interface{}) 
 					// for example:
 					// valueB, _ := json.Marshal(value)
 					// vStr = "`" + string(valueB) + "`"
-					vStr = fmt.Sprint(value)
+					vStr = string(value.([]byte))
 				default:
 					vStr = fmt.Sprint(value)
 				}
