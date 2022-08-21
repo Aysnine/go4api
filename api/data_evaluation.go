@@ -96,7 +96,9 @@ func (tcDataStore *TcDataStore) RenderTcVariables(path string, res interface{}) 
 
 			var vStr = ""
 			if value != nil {
-				switch reflect.TypeOf(value).Kind().String() {
+				typeName := reflect.TypeOf(value).Kind().String()
+				fmt.Println("A", typeName, key)
+				switch typeName {
 				case "float64":
 					vStr = utils.FloatToString(value.(float64))
 				case "string":
@@ -155,7 +157,9 @@ func (tcDataStore *TcDataStore) GetRenderTcVariables(res string) string {
 
 			var vStr = ""
 			if value != nil {
-				switch reflect.TypeOf(value).Kind().String() {
+				typeName := reflect.TypeOf(value).Kind().String()
+				fmt.Println("B", typeName, key)
+				switch typeName {
 				case "float64":
 					vStr = utils.FloatToString(value.(float64))
 				case "string":
@@ -228,7 +232,9 @@ func (tcDataStore *TcDataStore) RenderExpresionA(source interface{}) string {
 
 			var vStr = ""
 			if value != nil {
-				switch reflect.TypeOf(value).Kind().String() {
+				typeName := reflect.TypeOf(value).Kind().String()
+				fmt.Println("C", typeName, key)
+				switch typeName {
 				case "float64":
 					vStr = utils.FloatToString(value.(float64))
 				case "string":
@@ -278,7 +284,7 @@ func (tcDataStore *TcDataStore) RenderExpresionB(source interface{}) interface{}
 			var vStr = ""
 			if value != nil {
 				typeName := reflect.TypeOf(value).Kind().String()
-				fmt.Println("xxxxxxxxx", key, typeName)
+				fmt.Println("D", typeName, key)
 				switch typeName {
 				case "float64":
 					vStr = utils.FloatToString(value.(float64))
