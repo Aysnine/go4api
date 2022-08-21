@@ -70,7 +70,7 @@ func (tcDataStore *TcDataStore) MergeTestData() map[string]interface{} {
 		finalMap[k] = v
 	}
 
-	finalMap["body"] = tcDataStore.HttpActualBody
+	finalMap["body"] = string(tcDataStore.HttpActualBody)
 
 	return finalMap
 }
