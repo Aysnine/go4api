@@ -6,7 +6,7 @@ require (
 	github.com/ahmetb/go-linq v3.0.0+incompatible
 	github.com/dop251/goja v0.0.0-20220814115359-016db103e6f7
 	github.com/dop251/goja_nodejs v0.0.0-20220808115320-bac29516aae9
-	github.com/go-sql-driver/mysql v1.4.1
+	github.com/go-sql-driver/mysql v1.6.0
 	github.com/gomodule/redigo v2.0.0+incompatible
 	github.com/lib/pq v1.10.6
 	github.com/tealeg/xlsx v1.0.3
