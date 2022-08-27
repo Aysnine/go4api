@@ -129,11 +129,6 @@ func (sqlExec *SqlExec) Update() error {
 func (sqlExec *SqlExec) Delete() error {
 	db := SqlCons[sqlExec.DriverName][sqlExec.TargetDb]
 
-	fmt.Println("sqlExec.DriverName: ", sqlExec.DriverName)
-	fmt.Println("sqlExec.TargetDb: ", sqlExec.TargetDb)
-	fmt.Println("db here: ", db)
-	fmt.Println("sqlExec.Stmt: ", sqlExec.Stmt)
-
 	// defer func() {
 	//     if r := recover(); r != nil {
 	//         fmt.Println("!! Err, Catch gsql err:", r)
