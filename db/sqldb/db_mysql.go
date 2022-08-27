@@ -52,5 +52,7 @@ func InitMySqlConnection() map[string]*sql.DB {
 		sqlCons[dbIndicator] = db
 	}
 
+	fmt.Println("SqlCons", SqlCons)
+
 	return sqlCons
 }
