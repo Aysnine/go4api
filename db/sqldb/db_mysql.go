@@ -26,8 +26,6 @@ func InitMySqlConnection() map[string]*sql.DB {
 
 	dbs := cmd.GetDbConfig()
 
-	fmt.Println("dbs: ", dbs)
-
 	for k, v := range dbs {
 		envMap := utils.GetOsEnviron()
 
@@ -41,8 +39,6 @@ func InitMySqlConnection() map[string]*sql.DB {
 
 		conInfo := user + ":" + password + "@tcp(" + ip + ":" + port + ")/" + defaultSchema
 
-		fmt.Println("before open: ", k, ip, port, user, password, conInfo)
-
 		db, _ := sql.Open("mysql", conInfo)
 		db.SetMaxOpenConns(2000)
 		db.SetMaxIdleConns(1000)
@@ -55,13 +51,8 @@ func InitMySqlConnection() map[string]*sql.DB {
 
 		dbIndicator := strings.ToLower(k)
 
-		fmt.Println("after open: dbIndicator", dbIndicator)
-		fmt.Println("after open: ping err", err)
-
 		sqlCons[dbIndicator] = db
 	}
-
-	fmt.Println("SqlCons", SqlCons)
 
 	return sqlCons
 }

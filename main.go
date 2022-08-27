@@ -24,7 +24,7 @@ import (
 
 func main() {
 
-	var Version = "0.71.8-15"
+	var Version = "0.71.9"
 	var Banner = `
       ________                 ____          ___                   _
       /  ____  \   _______     / __ |        / _ \       ______    |_|
@@ -47,7 +47,6 @@ func main() {
 	gStart_str := gStart.Format("2006-01-02 15.04.05.000000000 +0800 CST")
 	//
 	fmt.Println("Started at: " + gStart_str)
-	// fmt.Println(os.Args)
 
 	if os.Args[1] == "-run" {
 		executor.Dispatch(ch, gStart, gStart_str)

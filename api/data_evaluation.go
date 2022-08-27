@@ -94,12 +94,9 @@ func (tcDataStore *TcDataStore) RenderTcVariables(path string, res interface{}) 
 			key := sR[0:idx2]
 			value := dataFeeder[key]
 
-			fmt.Println(">>>>>>>> key", key, value)
-
 			var vStr = ""
 			if value != nil {
 				typeName := reflect.TypeOf(value).Kind().String()
-				fmt.Println(">>>>>>>> type", key, typeName)
 				switch typeName {
 				case "float64":
 					vStr = utils.FloatToString(value.(float64))
