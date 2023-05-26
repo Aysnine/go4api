@@ -122,6 +122,8 @@ func (tcDataStore *TcDataStore) CompareHttpRespGroup(httpExpResp []map[string]in
 						part = "HTTP.Status"
 					case strings.HasPrefix(key, "$(headers)"):
 						part = "HTTP.Headers"
+					case strings.HasPrefix(key, "$(bodyString)"):
+						part = "HTTP.Body"
 					case strings.HasPrefix(key, "$(body)"):
 						part = "HTTP.Body"
 					default:
