@@ -59,6 +59,7 @@ type Options struct {
 	TimeZone string `json:"timeZone"`
 
 	IfMySqlDb bool `json:"ifMySqlDb"`
+	IfMsSqlDb bool `json:"ifMsSqlDb"`
 	IfPgDb    bool `json:"ifPgDb"`
 	IfRedis   bool `json:"ifRedis"`
 	IfMongoDB bool `json:"ifMongoDB"`
@@ -108,6 +109,7 @@ func init() {
 	timeZone := flag.String("timeZone", "", "timezone used, GMT+/-N:00")
 
 	ifMySqlDb := flag.Bool("ifMySqlDb", false, "if test has MySql")
+	ifMsSqlDb := flag.Bool("ifMsSqlDb", false, "if test has MsSql")
 	ifPgDb := flag.Bool("ifPgDb", false, "if test has PostgreSql")
 	ifRedis := flag.Bool("ifRedis", false, "if test has Redis")
 	ifMongoDB := flag.Bool("ifMongoDB", false, "if test has MongoDb")
@@ -144,6 +146,7 @@ func init() {
 	Opt.TimeZone = *timeZone
 
 	Opt.IfMySqlDb = *ifMySqlDb
+	Opt.IfMsSqlDb = *ifMsSqlDb
 	Opt.IfPgDb = *ifPgDb
 	Opt.IfRedis = *ifRedis
 	Opt.IfMongoDB = *ifMongoDB

@@ -36,7 +36,7 @@ func (tcDataStore *TcDataStore) GetResponseValue(searchPath string) interface{} 
 			case "$(body)":
 				s := string(tcDataStore.HttpActualBody)
 				value = tcDataStore.GetContentByPath(s, z[1])
-			case "$(sql)", "$(mysql)", "$(postgresql)", "$(mongodb)":
+			case "$(sql)", "$(mysql)", "$(mssql)", "$(postgresql)", "$(mongodb)":
 				s := tcDataStore.CmdResults
 
 				value = tcDataStore.GetContentByPath(s, z[1])

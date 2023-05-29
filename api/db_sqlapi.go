@@ -26,6 +26,13 @@ func RunSql(tgtDb string, stmt string) (int, []string, []map[string]interface{},
 	return rowsCount, rowsHeaders, rowsData, sqlExecStatus
 }
 
+// for mssql
+func RunMsSql(tgtDb string, stmt string) (int, []string, []map[string]interface{}, string) {
+	rowsCount, rowsHeaders, rowsData, sqlExecStatus := gsql.Run("mssql", tgtDb, stmt)
+
+	return rowsCount, rowsHeaders, rowsData, sqlExecStatus
+}
+
 // for postgresql
 func RunPgSql(tgtDb string, stmt string) (int, []string, []map[string]interface{}, string) {
 	// gsql.Run will return: <impacted rows : int>, <rows for select : [][]interface{}{}>, <sql status : string>

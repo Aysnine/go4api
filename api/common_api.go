@@ -37,7 +37,7 @@ func (tcDataStore *TcDataStore) CommandGroup(cmdGroupOrigin []*testcase.CommandD
 		cmdType := cmdGroupOrigin[i].CmdType
 		lc := strings.ToLower(cmdType)
 		switch lc {
-		case "sql", "mysql", "postgres", "postgresql":
+		case "sql", "mysql", "mssql", "postgres", "postgresql":
 			sResults, sMessages = tcDataStore.HandleSqlCmd(lc, i)
 
 			cmdsResults = append(cmdsResults, sResults[0:]...)
@@ -145,6 +145,9 @@ func (tcDataStore *TcDataStore) HandleSqlCmd(lc string, i int) ([]bool, [][]*tes
 	case "sql", "mysql":
 		tcDataStore.CmdType = "mysql"
 		cmdAffectedCount, _, cmdResults, cmdExecStatus = RunSql(tgtDb, cmdStr)
+	case "mssql":
+		tcDataStore.CmdType = "mssql"
+		cmdAffectedCount, _, cmdResults, cmdExecStatus = RunMsSql(tgtDb, cmdStr)
 	case "postgres", "postgresql":
 		tcDataStore.CmdType = "postgresql"
 		cmdAffectedCount, _, cmdResults, cmdExecStatus = RunPgSql(tgtDb, cmdStr)

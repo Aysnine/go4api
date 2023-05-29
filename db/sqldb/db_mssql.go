@@ -18,10 +18,12 @@ import (
 	"github.com/Aysnine/go4api/cmd"
 	"github.com/Aysnine/go4api/utils"
 
-	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/denisenkom/go-mssqldb"
 )
 
-func InitMySqlConnection() map[string]*sql.DB {
+func InitMsSqlConnection() map[string]*sql.DB {
+	// TODO
+
 	sqlCons := make(map[string]*sql.DB)
 
 	dbs := cmd.GetDbConfig()
@@ -37,9 +39,9 @@ func InitMySqlConnection() map[string]*sql.DB {
 
 		defaultSchema := ""
 
-		conInfo := user + ":" + password + "@tcp(" + ip + ":" + port + ")/" + defaultSchema
+		conInfo := user + ":" + password + "@tcp(" + ip + ":" + port + ")/" + (defaultSchema)
 
-		db := GetMysqlDB(conInfo)
+		db := GetMssqlDB(conInfo)
 
 		dbIndicator := strings.ToLower(k)
 
@@ -49,16 +51,15 @@ func InitMySqlConnection() map[string]*sql.DB {
 	return sqlCons
 }
 
-func GetMysqlDB(conInfo string) *sql.DB {
-	db, _ := sql.Open("mysql", conInfo)
+func GetMssqlDB(conInfo string) *sql.DB {
+	db, _ := sql.Open("mssql", conInfo)
 	db.SetMaxOpenConns(2000)
 	db.SetMaxIdleConns(1000)
 
 	err := db.Ping()
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("MSSQL CONNECT ERROR", err)
 		panic(err)
 	}
-
 	return db
 }

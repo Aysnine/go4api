@@ -107,6 +107,9 @@ func WarmUpSqlDBConnection() {
 	if cmd.Opt.IfMySqlDb == true {
 		gsql.InitConnection("mysql")
 	}
+	if cmd.Opt.IfMsSqlDb == true {
+		gsql.InitConnection("mssql")
+	}
 
 	if cmd.Opt.IfPgDb == true {
 		gsql.InitConnection("postgres")
