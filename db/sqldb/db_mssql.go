@@ -26,7 +26,7 @@ func InitMsSqlConnection() map[string]*sql.DB {
 
 	sqlCons := make(map[string]*sql.DB)
 
-	dbs := cmd.GetDbConfig()
+	dbs := cmd.GetMsDbConfig()
 
 	for k, v := range dbs {
 		envMap := utils.GetOsEnviron()

@@ -50,6 +50,9 @@ func InitConnection(driverName string) {
 	case "sql", "mysql":
 		cons := InitMySqlConnection()
 		SqlCons["mysql"] = cons
+	case "mssql":
+		cons := InitMsSqlConnection()
+		SqlCons["mssql"] = cons
 	case "postgres", "postgresql":
 		cons := InitPgConnection()
 		SqlCons["postgres"] = cons
@@ -234,6 +237,8 @@ func (sqlExec *SqlExec) ScanRows(rows *sql.Rows) (int, []string, []map[string]in
 				dri := strings.ToLower(sqlExec.DriverName)
 				switch dri {
 				case "sql", "mysql":
+					record[rowsHeaders[i]] = string(col.([]byte))
+				case "mssql":
 					record[rowsHeaders[i]] = string(col.([]byte))
 				case "postgres", "postgresql":
 					// 1.
