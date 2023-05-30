@@ -41,7 +41,10 @@ func InitMsSqlConnection() map[string]*sql.DB {
 
 		// conInfo := user + ":" + password + "@tcp(" + ip + ":" + port + ")/" + (defaultSchema)
 
-		conInfo := fmt.Sprintf("server=%s;user id=%s;password=%s;port=%s", ip, user, password, port)
+		if len(port) == 0 {
+			port = "1433"
+		}
+
 
 		db := GetMssqlDB(conInfo)
 
