@@ -35,7 +35,7 @@ func InitMsSqlConnection() map[string]*sql.DB {
 		port := renderValue(fmt.Sprint(v.Port), envMap)
 		user := renderValue(v.UserName, envMap)
 		password := renderValue(v.Password, envMap)
-		// dbname := renderValue(v.Dbname, envMap)
+		dbname := renderValue(v.Dbname, envMap)
 
 		// defaultSchema := ""
 
@@ -45,6 +45,7 @@ func InitMsSqlConnection() map[string]*sql.DB {
 			port = "1433"
 		}
 
+		conInfo := fmt.Sprintf("server=%s;user id=%s;password=%s;port=%s;database=%s", ip, user, password, port, dbname)
 
 		db := GetMssqlDB(conInfo)
 
