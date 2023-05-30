@@ -1,0 +1,28 @@
+[
+  {
+    "FirstTestCase-001": {
+      "priority": "1",
+      "parentTestCase": "root",
+      "request": {
+        "method": "GET",
+        "path": "/",
+        "headers": {}
+      },
+      "response": [
+        {
+          "$(status).statusCode": {
+            "Equals": 200
+          }
+        },
+        {
+          "$(bodyString)": {
+            "Equals": "Hello, World 👋!"
+          }
+        }
+      ],
+      "session": {
+        "body_content": "$(bodyString)"
+      }
+    }
+  }
+]

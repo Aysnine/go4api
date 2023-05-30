@@ -1,0 +1,26 @@
+[
+  {
+    "SecondTestCase-001": {
+      "priority": "1",
+      "parentTestCase": "FirstTestCase-001",
+      "inputs": [],
+      "request": {
+        "method": "GET",
+        "path": "/json",
+        "headers": {}
+      },
+      "response": [
+        {
+          "$(status).statusCode": {
+            "Equals": 200
+          }
+        },
+        {
+          "$(body).message": {
+            "Equals": "Hello World"
+          }
+        }
+      ]
+    }
+  }
+]
