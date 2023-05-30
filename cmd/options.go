@@ -166,7 +166,7 @@ func init() {
 func usage() {
 	fmt.Fprintf(os.Stderr, `
 -----
-go4api version: 0.71.9-1
+go4api version: 0.72.0-alpha3
 
 forked: github.com/Aysnine/go4api
 
